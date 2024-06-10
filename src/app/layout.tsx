@@ -2,14 +2,13 @@ import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "@/components/ui/toaster";
-import { Analytics } from "@/components/analytics";
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteConfig } from "@/config/site";
 
 export const metadata = {
   title: {
     default: siteConfig.name,
-    template: `Assitant | ${siteConfig.name}`,
+    template: `${siteConfig.name}`,
   },
   description: siteConfig.description,
   keywords: [
@@ -58,7 +57,6 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <body>{children}</body>
-        <Analytics />
         <Toaster />
       </ThemeProvider>
     </html>
