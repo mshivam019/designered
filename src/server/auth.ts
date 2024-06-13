@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import EmailProvider from "next-auth/providers/email";
+import NodeMailder from "next-auth/providers/nodemailer"
+import Google from "next-auth/providers/google";
 import { type Adapter } from "next-auth/adapters";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/server/db";
@@ -22,10 +23,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signOut: "/dashboard",
   },
   providers: [
-    EmailProvider({
+    NodeMailder({
       server: process.env.EMAIL_SERVER,
       from: process.env.EMAIL_FROM,
     }),
+    Google
+
   ],
   callbacks: {
     session: ({ session, user }) => ({
