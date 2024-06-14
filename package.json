@@ -32,7 +32,7 @@
         "next-auth": "5.0.0-beta.19",
         "next-themes": "^0.3.0",
         "nodemailer": "^6.9.13",
-        "postgres": "^3.4.4",
+        "postgres": "^3.3.5",
         "react": "19.0.0-rc-cc1ec60d0d-20240607",
         "react-dom": "19.0.0-rc-cc1ec60d0d-20240607",
         "react-hook-form": "^7.51.5",

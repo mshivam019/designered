@@ -60,7 +60,7 @@ importers:
         specifier: ^6.9.13
         version: 6.9.13
       postgres:
-        specifier: ^3.4.4
+        specifier: ^3.3.5
         version: 3.4.4
       react:
         specifier: 19.0.0-rc-cc1ec60d0d-20240607

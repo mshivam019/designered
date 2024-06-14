@@ -11,16 +11,15 @@ import {
 } from '@/server/db/schema';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+    session: {
+        strategy: 'jwt',
+    },
     adapter: DrizzleAdapter(db, {
         usersTable: users,
         accountsTable: accounts,
         sessionsTable: sessions,
         verificationTokensTable: verificationTokens
     }),
-    pages: {
-        signIn: '/login',
-        signOut: '/dashboard'
-    },
     providers: [
         NodeMailder({
             server: process.env.EMAIL_SERVER,
@@ -28,13 +27,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }),
         Google
     ],
-    callbacks: {
-        session: ({ session, user }) => ({
-            ...session,
-            user: {
-                ...session.user,
-                id: user.id
-            }
-        })
-    }
+    
 });
