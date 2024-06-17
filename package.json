@@ -36,10 +36,10 @@
         "react": "19.0.0-rc-cc1ec60d0d-20240607",
         "react-dom": "19.0.0-rc-cc1ec60d0d-20240607",
         "react-hook-form": "^7.51.5",
-        "react-query": "^3.39.3",
         "sonner": "^1.5.0",
         "tailwind-merge": "^2.3.0",
         "tailwindcss-animate": "^1.0.7",
+        "usehooks-ts": "^3.1.0",
         "zod": "^3.23.3"
     },
     "devDependencies": {

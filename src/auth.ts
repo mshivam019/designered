@@ -25,7 +25,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             server: process.env.EMAIL_SERVER,
             from: process.env.EMAIL_FROM
         }),
-        Google
+        Google({
+            allowDangerousEmailAccountLinking: true
+        })
     ],
     
 });

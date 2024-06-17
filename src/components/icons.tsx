@@ -22,7 +22,9 @@ import {
     Trash,
     User,
     X,
-    type Icon as LucideIcon
+    type Icon as LucideIcon,
+    Menu,
+    ChevronsLeftRightIcon
 } from 'lucide-react';
 
 export type Icon = typeof LucideIcon;
@@ -32,11 +34,13 @@ export const Icons = {
     close: X,
     spinner: Loader2,
     chevronLeft: ChevronLeft,
+    chevronsLeftRight: ChevronsLeftRightIcon,
     chevronRight: ChevronRight,
     trash: Trash,
     post: FileText,
     page: File,
     media: Image,
+    menu : Menu,
     settings: Settings,
     billing: CreditCard,
     ellipsis: MoreVertical,
