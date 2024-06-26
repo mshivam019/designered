@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -25,24 +24,6 @@ export function DashboardNav({ items, user }: DashboardNavProps) {
     const sidebarRef = useRef<React.ComponentRef<'aside'>>(null);
     const navbarRef = useRef<React.ComponentRef<'div'>>(null);
     const [isCollapsed, setIsCollapsed] = useState(isMobile);
-
-    if (!items?.length) {
-        return null;
-    }
-
-    useEffect(() => {
-        if (isMobile) {
-            collapse();
-        } else {
-            resetWidth();
-        }
-    }, [isMobile]);
-
-    useEffect(() => {
-        if (isMobile) {
-            collapse();
-        }
-    }, [isMobile]);
 
     const handleMouseDown = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -110,6 +91,14 @@ export function DashboardNav({ items, user }: DashboardNavProps) {
         }
     };
 
+    useEffect(() => {
+        if (isMobile) {
+            collapse();
+        } else {
+            resetWidth();
+        }
+    }, [isMobile]);
+
     return (
         <>
             <aside
@@ -121,7 +110,7 @@ export function DashboardNav({ items, user }: DashboardNavProps) {
                 ref={sidebarRef}
             >
                 <nav className="grid items-start gap-2">
-                    <div
+                    <button
                         className={cn(
                             `w-6 h-6 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute
         top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition`,
@@ -131,7 +120,7 @@ export function DashboardNav({ items, user }: DashboardNavProps) {
                         role="button"
                     >
                         <Icons.chevronLeft className="w-6 h-6" />
-                    </div>
+                    </button>
                     <UserAccountNav
                         user={{
                             name: user.name,
@@ -169,6 +158,7 @@ export function DashboardNav({ items, user }: DashboardNavProps) {
         right-0 top-0"
                         onMouseDown={handleMouseDown}
                         onClick={resetWidth}
+                        aria-hidden
                     ></div>
                 </nav>
                 <div className="absolute bottom-2 pl-2">
