@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useSpring, useInView, useAnimation } from 'framer-motion'
@@ -14,7 +13,7 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
 
   useEffect(() => {
     if (isInView) {
-      controls.start('visible')
+      void controls.start('visible')
     }
   }, [controls, isInView])
 
