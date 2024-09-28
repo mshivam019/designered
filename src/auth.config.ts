@@ -2,7 +2,8 @@ import { type NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   pages: {
-    signIn: '/login',
+    signIn: '/register',
+    signOut: '/logout',
   },
   providers: [
     // added later in auth.ts since it requires bcrypt which is only compatible with Node.js
@@ -12,15 +13,25 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
-
+      const isPublicPage = ['/terms', '/privacy', "/"].includes(nextUrl.pathname);
+  
+      // Allow access to public pages like terms and privacy even if logged in
+      if (isPublicPage) return true;
+  
+      // Handle dashboard authorization
       if (isOnDashboard) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
-      } else if (isLoggedIn) {
+      }
+  
+      // Redirect logged-in users to the dashboard if they're trying to access other pages
+      if (isLoggedIn) {
         return Response.redirect(new URL('/dashboard', nextUrl));
       }
-
+  
+      // Allow unauthenticated users to access non-dashboard pages
       return true;
     },
-  },
+  }
+  
 } satisfies NextAuthConfig;
