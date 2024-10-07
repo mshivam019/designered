@@ -1,1 +1,1 @@
-This is a gpt style chat app for multiple LLMs.
+This is a canva style editor app.

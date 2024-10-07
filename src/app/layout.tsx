@@ -2,8 +2,15 @@ import '@/styles/globals.css';
 
 import { GeistSans } from 'geist/font/sans';
 import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/components/theme-provider';
-import { siteConfig } from '@/config/site';
+import { Providers } from '@/components/providers';
+
+import { SessionProvider } from 'next-auth/react';
+
+const siteConfig = {
+    name: 'Next.js Starter',
+    description: 'A starter template for Next.js with Geist UI and TypeScript',
+    url: 'https://nextjs-starter.vercel.app'
+};
 
 export const metadata = {
     title: {
@@ -54,19 +61,15 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${GeistSans.variable}`}>
-            <head />
-            <body>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    <main>{children}</main>
-                    <Toaster />
-                </ThemeProvider>
-            </body>
-        </html>
+        <SessionProvider>
+            <html lang="en" className={`${GeistSans.variable}`}>
+                <body>
+                    <Providers>
+                        <Toaster />
+                        {children}
+                    </Providers>
+                </body>
+            </html>
+        </SessionProvider>
     );
 }

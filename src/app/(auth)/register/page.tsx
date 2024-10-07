@@ -52,7 +52,8 @@ export default function RegisterPage() {
                     </ul>
                 </div>
                 <p className="mt-auto text-sm text-muted-foreground">
-                    © {new Date().getFullYear()} MultiChat. All rights reserved.
+                    © {new Date().getFullYear()} MultiChat. All rights
+                    reserved.
                 </p>
             </div>
             <div className="lg:p-8">

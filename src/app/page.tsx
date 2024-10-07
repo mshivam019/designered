@@ -11,9 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Smile } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ReactLenis, useLenis } from 'lenis/react'
-
-
+import { ReactLenis, useLenis } from 'lenis/react';
 
 const BlobShape = ({ className }: { className: string }) => (
     <motion.svg
@@ -55,10 +53,7 @@ export default function Page() {
     const router = useRouter();
 
     return (
-        <ReactLenis
-            root
-            options={{ lerp: 0.1, duration: 1.5}}
-        >
+        <ReactLenis root options={{ lerp: 0.1, duration: 1.5 }}>
             <main data-scroll-container className="bg-blue-50">
                 <motion.div
                     className="fixed top-0 left-0 right-0 h-1 bg-orange-500 z-50"
@@ -138,8 +133,6 @@ export default function Page() {
                         ></path>
                     </svg>
                 </section>
-
-                
 
                 <section
                     className="py-20 px-4 bg-blue-900 text-white"

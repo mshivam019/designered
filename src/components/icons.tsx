@@ -40,7 +40,7 @@ export const Icons = {
     post: FileText,
     page: File,
     media: Image,
-    menu : Menu,
+    menu: Menu,
     settings: Settings,
     billing: CreditCard,
     ellipsis: MoreVertical,

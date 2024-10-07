@@ -9,6 +9,18 @@ const config = {
     experimental: {
         reactCompiler: true,
         ppr: true
+    },
+
+    images: {
+        domains: ['images.unsplash.com', 'utfs.io']
+    },
+    webpack: (config) => {
+        config.externals.push({
+            'utf-8-validate': 'commonjs utf-8-validate',
+            bufferutil: 'commonjs bufferutil',
+            canvas: 'commonjs canvas'
+        });
+        return config;
     }
 };
 
