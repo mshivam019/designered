@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { zValidator } from '@hono/zod-validator';
+import bcrypt from 'bcryptjs';
 
 import { db } from '@/server/db';
 import { users } from '@/server/db/schema';
@@ -12,11 +13,14 @@ const app = new Hono().post(
         'json',
         z.object({
             name: z.string(),
-            email: z.string().email()
+            email: z.string().email(),
+            password: z.string().min(3).max(20)
         })
     ),
     async (c) => {
-        const { name, email } = c.req.valid('json');
+        const { name, email, password } = c.req.valid('json');
+
+        const hashedPassword = await bcrypt.hash(password, 12);
 
         const query = await db
             .select()
@@ -29,7 +33,8 @@ const app = new Hono().post(
 
         await db.insert(users).values({
             email,
-            name
+            name,
+            password: hashedPassword
         });
 
         return c.json(null, 200);

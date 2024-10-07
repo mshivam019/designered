@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Hono } from 'hono';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, asc } from 'drizzle-orm';
 import { verifyAuth } from '@hono/auth-js';
 import { zValidator } from '@hono/zod-validator';
 
@@ -23,9 +23,8 @@ const app = new Hono()
             const data = await db
                 .delete(projects)
                 .where(
-                    and(
-                        eq(projects.id, id),
-                        eq(projects.userId, String(auth.token.id))
+                    and(eq(projects.id, id),
+                     eq(projects.userId, String(auth.token.id))
                     )
                 )
                 .returning();
@@ -53,10 +52,10 @@ const app = new Hono()
                 .select()
                 .from(projects)
                 .where(
-                    and(
-                        eq(projects.id, id),
-                        eq(projects.userId, String(auth.token.id))
-                    )
+                    and(eq(projects.id, id), 
+                    eq(projects.userId, 
+                      String(auth.token.id)
+                    ))
                 );
 
             if (data.length === 0) {
@@ -147,10 +146,7 @@ const app = new Hono()
                     updatedAt: new Date()
                 })
                 .where(
-                    and(
-                        eq(projects.id, id),
-                        eq(projects.userId, String(auth.token.id))
-                    )
+                    and(eq(projects.id, id), eq(projects.userId, String(auth.token.id)))
                 )
                 .returning();
 
@@ -177,10 +173,7 @@ const app = new Hono()
                 .select()
                 .from(projects)
                 .where(
-                    and(
-                        eq(projects.id, id),
-                        eq(projects.userId, String(auth.token.id))
-                    )
+                    and(eq(projects.id, id), eq(projects.userId, String(auth.token.id)))
                 );
 
             if (data.length === 0) {

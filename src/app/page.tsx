@@ -1,17 +1,10 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import {
-    motion,
-    useScroll,
-    useSpring,
-    useInView,
-    useAnimation
-} from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Smile } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ReactLenis, useLenis } from 'lenis/react';
+import { ReactLenis } from 'lenis/react';
 
 const BlobShape = ({ className }: { className: string }) => (
     <motion.svg
@@ -42,7 +35,6 @@ const BlobShape = ({ className }: { className: string }) => (
 
 export default function Page() {
     const containerRef = useRef<HTMLDivElement>(null!);
-    const [email, setEmail] = useState('');
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, {
         stiffness: 100,
@@ -83,7 +75,7 @@ export default function Page() {
                             size="lg"
                             className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6"
                             onClick={() => {
-                                router.push('/register');
+                                router.push('/dashboard');
                             }}
                         >
                             Start Your Free Trial
@@ -165,16 +157,12 @@ export default function Page() {
                             transition={{ duration: 0.8, delay: 0.4 }}
                             viewport={{ once: true }}
                         >
-                            <Input
-                                type="email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="bg-white text-black text-lg py-6"
-                            />
                             <Button
                                 variant="secondary"
                                 className="bg-orange-500 hover:bg-orange-600 text-white text-lg py-6"
+                                onClick={() => {
+                                    router.push('/dashboard');
+                                }}
                             >
                                 Start Free Trial
                             </Button>

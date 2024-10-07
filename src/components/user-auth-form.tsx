@@ -14,12 +14,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
+import { useSignUp } from '@/features/auth/hooks/use-sign-up';
+
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
 type FormData = z.infer<typeof userAuthSchema>;
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
+    const mutation = useSignUp();
     const {
         register,
         handleSubmit,
@@ -30,29 +33,36 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [isGoogleLoading, setIsGoogleLoading] =
         React.useState<boolean>(false);
-    const searchParams = useSearchParams();
 
     async function onSubmit(data: FormData) {
         setIsLoading(true);
 
-        const signInResult = await signIn('nodemailer', {
-            email: data.email.toLowerCase(),
-            redirect: false,
-            callbackUrl: searchParams?.get('from') ?? '/dashboard'
-        });
+        mutation.mutate({
+            email: data.email,
+            name: data.name,
+            password: data.password
+          }, {
+            onSuccess: () => {
+              signIn("credentials", {
+                email: data.email,
+                password: data.password,
+                callbackUrl: "/",
+              });
+            },
+          })
 
         setIsLoading(false);
 
-        if (!signInResult?.ok) {
-            return toast.error('Something went wrong.', {
-                description: 'Your sign in request failed. Please try again.'
-            });
-        }
+        // if (!signInResult?.ok) {
+        //     return toast.error('Something went wrong.', {
+        //         description: 'Your sign in request failed. Please try again.'
+        //     });
+        // }
 
-        return toast.success('Check your email', {
-            description:
-                "We've sent you a login link. Be sure to check your spam too."
-        });
+        // return toast.success('Check your email', {
+        //     description:
+        //         "We've sent you a login link. Be sure to check your spam too."
+        // });
     }
 
     return (
@@ -60,6 +70,18 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid gap-2">
                     <div className="grid gap-1">
+                        <Label className="sr-only" htmlFor="name">
+                            Name
+                        </Label>
+                        <Input
+                            id="name"
+                            placeholder="Name"
+                            type="text"
+                            autoComplete="name"
+                            autoCorrect="off"
+                            disabled={isLoading || isGoogleLoading}
+                            {...register('name')}
+                        />
                         <Label className="sr-only" htmlFor="email">
                             Email
                         </Label>
@@ -78,6 +100,24 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                                 {errors.email.message}
                             </p>
                         )}
+                        <Label className="sr-only" htmlFor="password">
+                            Password
+                        </Label>
+                        <Input  
+                            id="password"
+                            placeholder="Password"
+                            type="password"
+                            autoComplete="current-password"
+                            disabled={isLoading || isGoogleLoading}
+                            {...register('password')}
+                        />
+                        {
+                            errors?.password && (
+                                <p className="px-1 text-xs text-red-600">
+                                    {errors.password.message}
+                                </p>
+                            )
+                        }
                     </div>
                     <button
                         className={cn(buttonVariants())}

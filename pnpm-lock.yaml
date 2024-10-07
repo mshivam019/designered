@@ -23,6 +23,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.6.0
         version: 3.6.0(react-hook-form@7.51.5(react@19.0.0-rc-1460d67c-20241003))
+      '@neondatabase/serverless':
+        specifier: ^0.9.4
+        version: 0.9.5
       '@radix-ui/react-avatar':
         specifier: ^1.1.0
         version: 1.1.1(react-dom@19.0.0-rc-1460d67c-20241003(react@19.0.0-rc-1460d67c-20241003))(react@19.0.0-rc-1460d67c-20241003)(types-react-dom@19.0.0-rc.0)(types-react@19.0.0-rc.0)
@@ -59,6 +62,9 @@ importers:
       '@uploadthing/react':
         specifier: ^6.7.2
         version: 6.8.0(next@15.0.0-rc.0(babel-plugin-react-compiler@0.0.0-experimental-938cd9a-20240601)(react-dom@19.0.0-rc-1460d67c-20241003(react@19.0.0-rc-1460d67c-20241003))(react@19.0.0-rc-1460d67c-20241003))(react@19.0.0-rc-1460d67c-20241003)(uploadthing@6.13.3(next@15.0.0-rc.0(babel-plugin-react-compiler@0.0.0-experimental-938cd9a-20240601)(react-dom@19.0.0-rc-1460d67c-20241003(react@19.0.0-rc-1460d67c-20241003))(react@19.0.0-rc-1460d67c-20241003))(tailwindcss@3.4.4))
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -113,9 +119,6 @@ importers:
       nodemailer:
         specifier: ^6.9.13
         version: 6.9.13
-      postgres:
-        specifier: ^3.3.5
-        version: 3.4.4
       react:
         specifier: 19.0.0-rc-1460d67c-20241003
         version: 19.0.0-rc-1460d67c-20241003
@@ -165,6 +168,9 @@ importers:
         specifier: ^4.5.4
         version: 4.5.5(react@19.0.0-rc-1460d67c-20241003)(types-react@19.0.0-rc.0)
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/eslint':
         specifier: ^8.56.2
         version: 8.56.10
@@ -213,6 +219,9 @@ importers:
       node-loader:
         specifier: ^2.0.0
         version: 2.0.0(webpack@5.95.0(esbuild@0.19.12))
+      pg:
+        specifier: ^8.10.0
+        version: 8.13.0
       postcss:
         specifier: ^8.4.34
         version: 8.4.38
@@ -1282,6 +1291,9 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
+  '@types/bcryptjs@2.4.6':
+    resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
+
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
@@ -1674,6 +1686,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  bcryptjs@2.4.3:
+    resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
 
   big.js@5.2.2:
     resolution: {integrity: sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==}
@@ -4504,7 +4519,6 @@ snapshots:
   '@neondatabase/serverless@0.9.5':
     dependencies:
       '@types/pg': 8.11.6
-    optional: true
 
   '@next/env@15.0.0-rc.0': {}
 
@@ -4945,6 +4959,8 @@ snapshots:
       '@tanstack/query-core': 5.59.0
       react: 19.0.0-rc-1460d67c-20241003
 
+  '@types/bcryptjs@2.4.6': {}
+
   '@types/cookie@0.6.0': {}
 
   '@types/eslint@8.56.10':
@@ -4990,7 +5006,6 @@ snapshots:
       '@types/node': 20.14.2
       pg-protocol: 1.7.0
       pg-types: 4.0.2
-    optional: true
 
   '@types/prop-types@15.7.12': {}
 
@@ -5430,6 +5445,8 @@ snapshots:
       zod-validation-error: 2.1.0(zod@3.23.8)
 
   balanced-match@1.0.2: {}
+
+  bcryptjs@2.4.3: {}
 
   big.js@5.2.2: {}
 
@@ -6968,8 +6985,7 @@ snapshots:
       define-properties: 1.2.1
       es-object-atoms: 1.0.0
 
-  obuf@1.1.2:
-    optional: true
+  obuf@1.1.2: {}
 
   once@1.4.0:
     dependencies:
@@ -7018,22 +7034,17 @@ snapshots:
   pg-cloudflare@1.1.1:
     optional: true
 
-  pg-connection-string@2.7.0:
-    optional: true
+  pg-connection-string@2.7.0: {}
 
-  pg-int8@1.0.1:
-    optional: true
+  pg-int8@1.0.1: {}
 
-  pg-numeric@1.0.2:
-    optional: true
+  pg-numeric@1.0.2: {}
 
   pg-pool@3.7.0(pg@8.13.0):
     dependencies:
       pg: 8.13.0
-    optional: true
 
-  pg-protocol@1.7.0:
-    optional: true
+  pg-protocol@1.7.0: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -7042,7 +7053,6 @@ snapshots:
       postgres-bytea: 1.0.0
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
-    optional: true
 
   pg-types@4.0.2:
     dependencies:
@@ -7053,7 +7063,6 @@ snapshots:
       postgres-date: 2.1.0
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
-    optional: true
 
   pg@8.13.0:
     dependencies:
@@ -7064,12 +7073,10 @@ snapshots:
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.1.1
-    optional: true
 
   pgpass@1.0.5:
     dependencies:
       split2: 4.2.0
-    optional: true
 
   picocolors@1.0.1: {}
 
@@ -7126,38 +7133,30 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
-  postgres-array@2.0.0:
-    optional: true
+  postgres-array@2.0.0: {}
 
-  postgres-array@3.0.2:
-    optional: true
+  postgres-array@3.0.2: {}
 
-  postgres-bytea@1.0.0:
-    optional: true
+  postgres-bytea@1.0.0: {}
 
   postgres-bytea@3.0.0:
     dependencies:
       obuf: 1.1.2
-    optional: true
 
-  postgres-date@1.0.7:
-    optional: true
+  postgres-date@1.0.7: {}
 
-  postgres-date@2.1.0:
-    optional: true
+  postgres-date@2.1.0: {}
 
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
-    optional: true
 
-  postgres-interval@3.0.0:
-    optional: true
+  postgres-interval@3.0.0: {}
 
-  postgres-range@1.1.4:
-    optional: true
+  postgres-range@1.1.4: {}
 
-  postgres@3.4.4: {}
+  postgres@3.4.4:
+    optional: true
 
   preact-render-to-string@5.2.3(preact@10.11.3):
     dependencies:
@@ -7496,8 +7495,7 @@ snapshots:
 
   source-map@0.6.1: {}
 
-  split2@4.2.0:
-    optional: true
+  split2@4.2.0: {}
 
   stack-generator@2.0.10:
     dependencies:
@@ -8008,8 +8006,7 @@ snapshots:
 
   xmlchars@2.2.0: {}
 
-  xtend@4.0.2:
-    optional: true
+  xtend@4.0.2: {}
 
   yallist@4.0.0:
     optional: true

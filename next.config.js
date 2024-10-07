@@ -17,7 +17,10 @@ const config = {
     images: {
         domains: ['images.unsplash.com', 'utfs.io']
     },
-    webpack: (config) => {
+    webpack: (config, { webpack }) => {
+        config.plugins.push(new webpack.IgnorePlugin({
+            resourceRegExp: /^pg-native$|^cloudflare:sockets$/,
+        }))
         config.externals.push({
             'utf-8-validate': 'commonjs utf-8-validate',
             bufferutil: 'commonjs bufferutil',
