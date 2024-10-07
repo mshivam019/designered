@@ -38,7 +38,7 @@ export const ImageSidebar = ({
         const cached = localStorage.getItem(STORAGE_KEY);
         if (cached) {
             try {
-                const parsed = JSON.parse(cached);
+                const parsed = JSON.parse(cached) as UploadedImage[];
                 setUploadedImages(parsed);
             } catch (error) {
                 console.error('Failed to parse cached images:', error);
@@ -181,7 +181,7 @@ export const ImageSidebar = ({
                                 <Image
                                     fill
                                     src={image.urls.small}
-                                    alt={image.alt_description || 'Image'}
+                                    alt={image.alt_description ?? 'Image'}
                                     className="object-cover"
                                 />
                                 <Link

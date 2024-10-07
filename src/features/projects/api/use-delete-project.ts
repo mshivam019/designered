@@ -28,8 +28,8 @@ export const useDeleteProject = () => {
             return await response.json();
         },
         onSuccess: ({ data }) => {
-            queryClient.invalidateQueries({ queryKey: ['projects'] });
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({ queryKey: ['projects'] });
+            void queryClient.invalidateQueries({
                 queryKey: ['project', { id: data.id }]
             });
         },

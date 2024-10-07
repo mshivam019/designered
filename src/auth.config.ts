@@ -1,4 +1,5 @@
-import { type NextAuthConfig } from 'next-auth';
+import { type JWT } from '@auth/core/jwt';
+import { type Session, type NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
     pages: {
@@ -36,9 +37,11 @@ export const authConfig = {
             // Allow unauthenticated users to access non-dashboard pages
             return true;
         },
-        session({ session, token }: { session: any; token: any }) {
+        session({ session, token }: { session: Session; token: JWT }) {
             if (token.id) {
-                session.user.id = token.id;
+                if (session.user) {
+                    session.user.id = token.id as string;
+                }
             }
 
             return session;

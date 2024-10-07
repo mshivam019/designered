@@ -8,21 +8,29 @@ interface ColorPickerProps {
     onChange: (value: string) => void;
 }
 
+const AnyChromePicker = ChromePicker as unknown as React.ComponentType<{ color: string; onChange: (color: 
+{ rgb: { r: number; g: number; b: number; a: number } }
+) => void; className?: string }>;
+
+const AnyCirclePicker = CirclePicker as unknown as React.ComponentType<{ color: string; colors: string[];
+onChangeComplete: (color: { rgb: { r: number; g: number; b: number; a: number } }) => void }>;
+
+
 export const ColorPicker = ({ value, onChange }: ColorPickerProps) => {
     return (
         <div className="w-full space-y-4">
-            <ChromePicker
+            <AnyChromePicker
                 color={value}
-                onChange={(color) => {
+                onChange={(color: { rgb: { r: number; g: number; b: number; a: number } }) => {
                     const formattedValue = rgbaObjectToString(color.rgb);
                     onChange(formattedValue);
                 }}
                 className="border rounded-lg"
             />
-            <CirclePicker
+            <AnyCirclePicker
                 color={value}
                 colors={colors}
-                onChangeComplete={(color) => {
+                onChangeComplete={(color: { rgb: { r: number; g: number; b: number; a: number } }) => {
                     const formattedValue = rgbaObjectToString(color.rgb);
                     onChange(formattedValue);
                 }}

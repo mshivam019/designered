@@ -26,7 +26,6 @@ import { FontSidebar } from '@/features/editor/components/font-sidebar';
 import { ImageSidebar } from '@/features/editor/components/image-sidebar';
 import { FilterSidebar } from '@/features/editor/components/filter-sidebar';
 import { DrawSidebar } from '@/features/editor/components/draw-sidebar';
-import { RemoveBgSidebar } from '@/features/editor/components/remove-bg-sidebar';
 import { SettingsSidebar } from '@/features/editor/components/settings-sidebar';
 
 interface EditorProps {
@@ -157,11 +156,6 @@ export const Editor = ({ initialData }: EditorProps) => {
                     onChangeActiveTool={onChangeActiveTool}
                 />
 
-                <RemoveBgSidebar
-                    editor={editor}
-                    activeTool={activeTool}
-                    onChangeActiveTool={onChangeActiveTool}
-                />
                 <DrawSidebar
                     editor={editor}
                     activeTool={activeTool}

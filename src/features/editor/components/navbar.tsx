@@ -58,11 +58,17 @@ export const Navbar = ({
 
     const { openFilePicker } = useFilePicker({
         accept: '.json',
-        onFilesSuccessfullySelected: ({ plainFiles }: any) => {
+        onFilesSuccessfullySelected: ({
+            plainFiles
+        }: {
+            plainFiles: File[];
+        }) => {
             if (plainFiles && plainFiles.length > 0) {
                 const file = plainFiles[0];
                 const reader = new FileReader();
-                reader.readAsText(file, 'UTF-8');
+                if (file) {
+                    reader.readAsText(file, 'UTF-8');
+                }
                 reader.onload = () => {
                     editor?.loadJson(reader.result as string);
                 };

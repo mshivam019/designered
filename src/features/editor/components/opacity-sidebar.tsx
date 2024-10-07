@@ -19,7 +19,7 @@ export const OpacitySidebar = ({
     activeTool,
     onChangeActiveTool
 }: OpacitySidebarProps) => {
-    const initialValue = editor?.getActiveOpacity() || 1;
+    const initialValue = editor?.getActiveOpacity() ?? 1;
     const selectedObject = useMemo(
         () => editor?.selectedObjects[0],
         [editor?.selectedObjects]
@@ -29,7 +29,7 @@ export const OpacitySidebar = ({
 
     useEffect(() => {
         if (selectedObject) {
-            setOpacity(selectedObject.get('opacity') || 1);
+            setOpacity(selectedObject.get('opacity') ?? 1);
         }
     }, [selectedObject]);
 
@@ -57,7 +57,7 @@ export const OpacitySidebar = ({
                 <div className="p-4 space-y-4 border-b">
                     <Slider
                         value={[opacity]}
-                        onValueChange={(values) => onChange(values[0])}
+                        onValueChange={(values) => onChange(values[0] ?? 0)}
                         max={1}
                         min={0}
                         step={0.01}

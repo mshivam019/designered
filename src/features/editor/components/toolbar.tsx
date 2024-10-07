@@ -44,12 +44,12 @@ export const Toolbar = ({
     const initialFillColor = editor?.getActiveFillColor();
     const initialStrokeColor = editor?.getActiveStrokeColor();
     const initialFontFamily = editor?.getActiveFontFamily();
-    const initialFontWeight = editor?.getActiveFontWeight() || FONT_WEIGHT;
+    const initialFontWeight = editor?.getActiveFontWeight() ?? FONT_WEIGHT;
     const initialFontStyle = editor?.getActiveFontStyle();
     const initialFontLinethrough = editor?.getActiveFontLinethrough();
     const initialFontUnderline = editor?.getActiveFontUnderline();
     const initialTextAlign = editor?.getActiveTextAlign();
-    const initialFontSize = editor?.getActiveFontSize() || FONT_SIZE;
+    const initialFontSize = editor?.getActiveFontSize() ?? FONT_SIZE;
 
     const [properties, setProperties] = useState({
         fillColor: initialFillColor,

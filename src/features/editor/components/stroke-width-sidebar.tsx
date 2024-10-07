@@ -24,8 +24,8 @@ export const StrokeWidthSidebar = ({
     activeTool,
     onChangeActiveTool
 }: StrokeWidthSidebarProps) => {
-    const widthValue = editor?.getActiveStrokeWidth() || STROKE_WIDTH;
-    const typeValue = editor?.getActiveStrokeDashArray() || STROKE_DASH_ARRAY;
+    const widthValue = editor?.getActiveStrokeWidth() ?? STROKE_WIDTH;
+    const typeValue = editor?.getActiveStrokeDashArray() ?? STROKE_DASH_ARRAY;
 
     const onClose = () => {
         onChangeActiveTool('select');
@@ -55,9 +55,11 @@ export const StrokeWidthSidebar = ({
                     <Label className="text-sm">Stroke width</Label>
                     <Slider
                         value={[widthValue]}
-                        onValueChange={(values) =>
-                            onChangeStrokeWidth(values[0])
-                        }
+                        onValueChange={(values) => {
+                            if (values[0] !== undefined) {
+                                onChangeStrokeWidth(values[0]);
+                            }
+                        }}
                     />
                 </div>
                 <div className="p-4 space-y-4 border-b">

@@ -40,8 +40,8 @@ export const useHistory = ({ canvas, saveCallback }: UseHistoryProps) => {
             const workspace = canvas
                 .getObjects()
                 .find((object) => object.name === 'clip');
-            const height = workspace?.height || 0;
-            const width = workspace?.width || 0;
+            const height = workspace?.height ?? 0;
+            const width = workspace?.width ?? 0;
 
             saveCallback?.({ json, height, width });
         },
@@ -56,7 +56,7 @@ export const useHistory = ({ canvas, saveCallback }: UseHistoryProps) => {
             const previousIndex = historyIndex - 1;
             const previousStateString = canvasHistory.current[previousIndex];
             if (!previousStateString) return;
-            const previousState = JSON.parse(previousStateString);
+            const previousState = JSON.parse(previousStateString) as fabric.Canvas;
 
             canvas?.loadFromJSON(previousState, () => {
                 canvas.renderAll();
@@ -74,7 +74,7 @@ export const useHistory = ({ canvas, saveCallback }: UseHistoryProps) => {
             const nextIndex = historyIndex + 1;
             const nextStateString = canvasHistory.current[nextIndex];
             if (!nextStateString) return;
-            const nextState = JSON.parse(nextStateString);
+            const nextState = JSON.parse(nextStateString) as fabric.Canvas;
 
             canvas?.loadFromJSON(nextState, () => {
                 canvas.renderAll();

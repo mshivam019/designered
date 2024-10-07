@@ -18,7 +18,7 @@ export const useHotkeys = ({
     copy,
     paste
 }: UseHotkeysProps) => {
-    useEvent('keydown', (event) => {
+    useEvent('keydown', (event: KeyboardEvent) => {
         const isCtrlKey = event.ctrlKey || event.metaKey;
         const isBackspace = event.key === 'Backspace';
         const isInput = ['INPUT', 'TEXTAREA'].includes(

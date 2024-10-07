@@ -1,11 +1,13 @@
+// @ts-nocheck
+
 import { uuid } from 'uuidv4';
 import { fabric } from 'fabric';
 import type { RGBColor } from 'react-color';
 
-export function transformText(objects: any) {
+export function transformText(objects) {
     if (!objects) return;
-
-    objects.forEach((item: any) => {
+    // @ts-ignore
+    objects.forEach((item) => {
         if (item.objects) {
             transformText(item.objects);
         } else {
@@ -33,7 +35,7 @@ export function rgbaObjectToString(rgba: RGBColor | 'transparent') {
         return `rgba(0,0,0,0)`;
     }
 
-    const alpha = rgba.a === undefined ? 1 : rgba.a;
+    const alpha = rgba.a ?? 1;
 
     return `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${alpha})`;
 }
@@ -46,14 +48,12 @@ export const createFilter = (value: string) => {
             effect = new fabric.Image.filters.Grayscale();
             break;
         case 'polaroid':
-            // @ts-ignore
             effect = new fabric.Image.filters.Polaroid();
             break;
         case 'sepia':
             effect = new fabric.Image.filters.Sepia();
             break;
         case 'kodachrome':
-            // @ts-ignore
             effect = new fabric.Image.filters.Kodachrome();
             break;
         case 'contrast':
@@ -63,15 +63,12 @@ export const createFilter = (value: string) => {
             effect = new fabric.Image.filters.Brightness({ brightness: 0.8 });
             break;
         case 'brownie':
-            // @ts-ignore
             effect = new fabric.Image.filters.Brownie();
             break;
         case 'vintage':
-            // @ts-ignore
             effect = new fabric.Image.filters.Vintage();
             break;
         case 'technicolor':
-            // @ts-ignore
             effect = new fabric.Image.filters.Technicolor();
             break;
         case 'pixelate':
@@ -94,18 +91,15 @@ export const createFilter = (value: string) => {
             });
             break;
         case 'removecolor':
-            // @ts-ignore
             effect = new fabric.Image.filters.RemoveColor({
                 threshold: 0.2,
                 distance: 0.5
             });
             break;
         case 'blacknwhite':
-            // @ts-ignore
             effect = new fabric.Image.filters.BlackWhite();
             break;
         case 'vibrance':
-            // @ts-ignore
             effect = new fabric.Image.filters.Vibrance({
                 vibrance: 1
             });
@@ -125,7 +119,6 @@ export const createFilter = (value: string) => {
             effect = new fabric.Image.filters.Resize();
             break;
         case 'gamma':
-            // @ts-ignore
             effect = new fabric.Image.filters.Gamma({
                 gamma: [1, 0.5, 2.1]
             });

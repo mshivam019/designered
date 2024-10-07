@@ -24,8 +24,8 @@ export const DrawSidebar = ({
     activeTool,
     onChangeActiveTool
 }: DrawSidebarProps) => {
-    const colorValue = editor?.getActiveStrokeColor() || STROKE_COLOR;
-    const widthValue = editor?.getActiveStrokeWidth() || STROKE_WIDTH;
+    const colorValue = editor?.getActiveStrokeColor() ?? STROKE_COLOR;
+    const widthValue = editor?.getActiveStrokeWidth() ?? STROKE_WIDTH;
 
     const onClose = () => {
         editor?.disableDrawingMode();

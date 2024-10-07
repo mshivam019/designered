@@ -65,7 +65,6 @@ export const selectionDependentTools = [
     'font',
     'filter',
     'opacity',
-    'remove-bg',
     'stroke-color',
     'stroke-width'
 ];

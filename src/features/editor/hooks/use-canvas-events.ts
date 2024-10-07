@@ -20,10 +20,10 @@ export const useCanvasEvents = ({
             canvas.on('object:removed', () => save());
             canvas.on('object:modified', () => save());
             canvas.on('selection:created', (e) => {
-                setSelectedObjects(e.selected || []);
+                setSelectedObjects(e.selected ?? []);
             });
             canvas.on('selection:updated', (e) => {
-                setSelectedObjects(e.selected || []);
+                setSelectedObjects(e.selected ?? []);
             });
             canvas.on('selection:cleared', () => {
                 setSelectedObjects([]);

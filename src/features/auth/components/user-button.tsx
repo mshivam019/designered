@@ -22,14 +22,14 @@ export const UserButton = () => {
     if (session.status === 'unauthenticated' || !session.data) {
         return null;
     }
-    const name = session.data?.user?.name!;
+    const name = session.data?.user?.name ?? 'User';
     const imageUrl = session.data?.user?.image;
 
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger className="outline-none relative">
                 <Avatar className="size-10 hover:opcaity-75 transition">
-                    <AvatarImage alt={name} src={imageUrl || ''} />
+                    <AvatarImage alt={name} src={imageUrl ?? ''} />
                     <AvatarFallback className="bg-blue-500 font-medium text-white flex items-center justify-center">
                         {name.charAt(0).toUpperCase()}
                     </AvatarFallback>
