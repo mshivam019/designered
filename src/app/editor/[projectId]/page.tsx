@@ -16,7 +16,6 @@ interface EditorProjectIdPageProps {
 
 const EditorProjectIdPage = ({ params }: EditorProjectIdPageProps) => {
     const { data, isLoading, isError } = useGetProject(params.projectId);
-
     if (isLoading || !data) {
         return (
             <div className="h-full flex flex-col items-center justify-center">
@@ -39,7 +38,7 @@ const EditorProjectIdPage = ({ params }: EditorProjectIdPageProps) => {
         );
     }
 
-    return <Editor initialData={data} />;
+    return <Editor pageData={data} />;
 };
 
 export default EditorProjectIdPage;

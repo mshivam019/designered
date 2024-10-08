@@ -56,7 +56,9 @@ export const useHistory = ({ canvas, saveCallback }: UseHistoryProps) => {
             const previousIndex = historyIndex - 1;
             const previousStateString = canvasHistory.current[previousIndex];
             if (!previousStateString) return;
-            const previousState = JSON.parse(previousStateString) as fabric.Canvas;
+            const previousState = JSON.parse(
+                previousStateString
+            ) as fabric.Canvas;
 
             canvas?.loadFromJSON(previousState, () => {
                 canvas.renderAll();

@@ -5,24 +5,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { client } from '@/lib/hono';
 
 type ResponseType = InferResponseType<
-    (typeof client.api.projects)[':id']['pages'][':pageId']['$patch'],
+    (typeof client.api.projects)[':id']['$post'],
     200
 >;
 type RequestType = InferRequestType<
-    (typeof client.api.projects)[':id']['pages'][':pageId']['$patch']
+    (typeof client.api.projects)[':id']['$post']
 >['json'];
 
-export const useUpdateProject = (id: string, pageId: string) => {
+export const useSaveAllPages = (id: string) => {
     const queryClient = useQueryClient();
     const mutation = useMutation<ResponseType, Error, RequestType>({
-        mutationKey: ['page', { pageId }],
+        mutationKey: ['projectpages', { id }],
         mutationFn: async (json) => {
-            const response = await client.api.projects[':id'].pages[
-                ':pageId'
-            ].$patch({
+            const response = await client.api.projects[':id'].$post({
                 param: {
-                    id,
-                    pageId
+                    id
                 },
                 json
             });
@@ -35,9 +32,9 @@ export const useUpdateProject = (id: string, pageId: string) => {
         },
         onSuccess: () => {
             void queryClient.invalidateQueries({
-                queryKey: ['page', { pageId }]
+                queryKey: ['projectpages', { id }]
             });
-            toast.success('Saved page!');
+            toast.success('Saved all pages!');
         },
         onError: () => {
             toast.error('Failed to update project');

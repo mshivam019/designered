@@ -115,7 +115,12 @@ export const ProjectsSection = () => {
                                         }
                                         className="hidden md:table-cell cursor-pointer"
                                     >
-                                        {project.width} x {project.height} px
+                                        {formatDistanceToNow(
+                                            project.createdAt,
+                                            {
+                                                addSuffix: true
+                                            }
+                                        )}
                                     </TableCell>
                                     <TableCell
                                         onClick={() =>

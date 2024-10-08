@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { useSignUp } from '@/features/auth/hooks/use-sign-up';
 
-
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
 type FormData = z.infer<typeof userAuthSchema>;
@@ -37,19 +36,22 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     async function onSubmit(data: FormData) {
         setIsLoading(true);
 
-        mutation.mutate({
-            email: data.email,
-            name: data.name,
-            password: data.password
-          }, {
-            onSuccess: () => {
-              signIn("credentials", {
+        mutation.mutate(
+            {
                 email: data.email,
-                password: data.password,
-                callbackUrl: "/",
-              });
+                name: data.name,
+                password: data.password
             },
-          })
+            {
+                onSuccess: () => {
+                    signIn('credentials', {
+                        email: data.email,
+                        password: data.password,
+                        callbackUrl: '/'
+                    });
+                }
+            }
+        );
 
         setIsLoading(false);
 
@@ -103,7 +105,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                         <Label className="sr-only" htmlFor="password">
                             Password
                         </Label>
-                        <Input  
+                        <Input
                             id="password"
                             placeholder="Password"
                             type="password"
@@ -111,13 +113,11 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                             disabled={isLoading || isGoogleLoading}
                             {...register('password')}
                         />
-                        {
-                            errors?.password && (
-                                <p className="px-1 text-xs text-red-600">
-                                    {errors.password.message}
-                                </p>
-                            )
-                        }
+                        {errors?.password && (
+                            <p className="px-1 text-xs text-red-600">
+                                {errors.password.message}
+                            </p>
+                        )}
                     </div>
                     <button
                         className={cn(buttonVariants())}

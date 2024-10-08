@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type ResponseType } from '@/features/projects/api/use-get-project';
 import { useUpdateProject } from '@/features/projects/api/use-update-project';
+import { useAddPage } from '@/features/projects/api/use-add-page';
+import { useSaveAllPages } from '@/features/projects/api/use-save-all-pages';
 
 import {
     type ActiveTool,
@@ -27,24 +29,48 @@ import { ImageSidebar } from '@/features/editor/components/image-sidebar';
 import { FilterSidebar } from '@/features/editor/components/filter-sidebar';
 import { DrawSidebar } from '@/features/editor/components/draw-sidebar';
 import { SettingsSidebar } from '@/features/editor/components/settings-sidebar';
+import { Button } from '@/components/ui/button';
 
 interface EditorProps {
-    initialData: ResponseType['data'];
+    pageData: ResponseType['data'];
 }
 
-export const Editor = ({ initialData }: EditorProps) => {
-    const { mutate } = useUpdateProject(initialData?.id ?? '');
+export const Editor = ({ pageData }: EditorProps) => {
+    const projectId = pageData[0]?.projectId ?? '';
+    const [pages, setPages] = useState(
+        pageData ?? [
+            {
+                id: '',
+                json: '',
+                height: 800,
+                width: 1200
+            }
+        ]
+    );
+    const [currentPage, setCurrentPage] = useState(0);
+    const { mutate } = useUpdateProject(projectId, pages[currentPage].id);
+    const { mutate: addPage } = useAddPage(projectId);
+    const { mutate: saveAllPages } = useSaveAllPages(projectId);
+    const [canvasInstances, setCanvasInstances] = useState<fabric.Canvas[]>([]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSave = useCallback(
-        debounce((values: { json: string; height: number; width: number }) => {
-            mutate(values);
-        }, 500),
+        debounce(() => {
+            saveAllPages(
+                pages.map((page) => ({
+                    id: page.id,
+                    json: page.json,
+                    height: page.height,
+                    width: page.width,
+                    projectId,
+                    pageNumber: page.pageNumber
+                }))
+            );
+        }, 5000),
         [mutate]
     );
 
     const [activeTool, setActiveTool] = useState<ActiveTool>('select');
-
     const onClearSelection = useCallback(() => {
         if (selectionDependentTools.includes(activeTool)) {
             setActiveTool('select');
@@ -52,12 +78,120 @@ export const Editor = ({ initialData }: EditorProps) => {
     }, [activeTool]);
 
     const { init, editor } = useEditor({
-        defaultState: initialData?.json ?? '',
-        defaultWidth: initialData?.width ?? 0,
-        defaultHeight: initialData?.height ?? 0,
+        defaultState: pages[currentPage]?.json ?? '',
+        defaultWidth: pages[currentPage]?.width ?? 1200,
+        defaultHeight: pages[currentPage]?.height ?? 800,
         clearSelectionCallback: onClearSelection,
         saveCallback: debouncedSave
     });
+
+    // Initialize canvas
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Initialize fabric canvas for the current page
+    useEffect(() => {
+        if (!canvasRef.current || !containerRef.current) return;
+
+        const canvas = new fabric.Canvas(canvasRef.current, {
+            controlsAboveOverlay: true,
+            preserveObjectStacking: true
+        });
+
+        init({
+            initialCanvas: canvas,
+            initialContainer: containerRef.current,
+            newWidth: pages[currentPage]?.width ?? 1200,
+            newHeight: pages[currentPage]?.height ?? 800
+        });
+
+        canvas.loadFromJSON(pages[currentPage]?.json ?? '', () => {
+            canvas.renderAll();
+        });
+
+        // Store canvas instance
+        setCanvasInstances((prevInstances) => {
+            const updatedInstances = [...prevInstances];
+            updatedInstances[currentPage] = canvas;
+            return updatedInstances;
+        });
+
+        return () => {
+            canvas.dispose();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [init, currentPage]);
+
+    // Add a new page
+    const addNewPage = () => {
+        mutate({
+            json: JSON.stringify(editor?.canvas.toJSON()) ?? '',
+            height: pages[currentPage].height,
+            width: pages[currentPage].width,
+            projectId
+        });
+        setPages((prevPages) => {
+            const updatedPages = [...prevPages];
+            updatedPages[currentPage] = {
+                ...updatedPages[currentPage],
+                json: JSON.stringify(editor?.canvas.toJSON())
+            };
+            return updatedPages;
+        });
+        addPage(
+            {
+                projectId,
+                pageNumber: pages.length + 1,
+                json: '',
+                height: 800,
+                width: 1200
+            },
+            {
+                onSuccess: ({ data }) => {
+                    setPages((prevPages) => [
+                        ...prevPages,
+                        {
+                            id: data.id,
+                            json: '',
+                            height: 800,
+                            width: 1200,
+                            createdAt: data.createdAt,
+                            updatedAt: data.updatedAt,
+                            projectId: data.projectId,
+                            pageNumber: data.pageNumber
+                        }
+                    ]);
+
+                    setCurrentPage(pages.length);
+                }
+            }
+        );
+    };
+
+    // Switch between pages
+    const switchPage = (pageIndex: number) => {
+        // Save the current canvas data
+        if (editor && canvasInstances[currentPage]) {
+            const jsonData = canvasInstances[currentPage].toJSON();
+            mutate({
+                json: JSON.stringify(jsonData) ?? '',
+                height: pages[currentPage].height,
+                width: pages[currentPage].width,
+                projectId
+            });
+            setPages((prevPages) => {
+                const updatedPages = [...prevPages];
+                updatedPages[currentPage] = {
+                    ...updatedPages[currentPage],
+                    json: JSON.stringify(jsonData)
+                };
+                return updatedPages;
+            });
+        }
+
+        // Switch to the new page
+        setCurrentPage(pageIndex);
+    };
 
     const onChangeActiveTool = useCallback(
         (tool: ActiveTool) => {
@@ -78,37 +212,18 @@ export const Editor = ({ initialData }: EditorProps) => {
         [activeTool, editor]
     );
 
-    const canvasRef = useRef(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const canvas = new fabric.Canvas(canvasRef.current, {
-            controlsAboveOverlay: true,
-            preserveObjectStacking: true
-        });
-
-        init({
-            initialCanvas: canvas,
-            initialContainer: containerRef.current!
-        });
-
-        return () => {
-            canvas.dispose();
-        };
-    }, [init]);
-
     return (
         <div className="h-full flex flex-col">
             <Navbar
-                id={initialData?.id ?? ''}
+                id={projectId}
                 editor={editor}
                 activeTool={activeTool}
-                onChangeActiveTool={onChangeActiveTool}
+                onChangeActiveTool={(tool) => setActiveTool(tool)}
             />
             <div className="absolute h-[calc(100%-68px)] w-full top-[68px] flex">
                 <Sidebar
                     activeTool={activeTool}
-                    onChangeActiveTool={onChangeActiveTool}
+                    onChangeActiveTool={setActiveTool}
                 />
                 <ShapeSidebar
                     editor={editor}
@@ -170,9 +285,41 @@ export const Editor = ({ initialData }: EditorProps) => {
                     <Toolbar
                         editor={editor}
                         activeTool={activeTool}
-                        onChangeActiveTool={onChangeActiveTool}
+                        onChangeActiveTool={setActiveTool}
                         key={JSON.stringify(editor?.canvas.getActiveObject())}
                     />
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <Button onClick={addNewPage}>Add New Page</Button>
+                        {pages.map((page, index) => (
+                            <Button
+                                key={page.id}
+                                onClick={() => switchPage(index)}
+                                variant={
+                                    currentPage === index
+                                        ? 'outline'
+                                        : 'secondary'
+                                }
+                            >
+                                Page {index + 1}
+                            </Button>
+                        ))}
+                        <Button
+                            onClick={() =>
+                                mutate({
+                                    json:
+                                        JSON.stringify(
+                                            editor?.canvas.toJSON()
+                                        ) ?? '',
+                                    height: pages[currentPage].height,
+                                    width: pages[currentPage].width,
+                                    projectId
+                                })
+                            }
+                        >
+                            Save
+                        </Button>
+                    </div>
+
                     <div
                         className="flex-1 h-[calc(100%-124px)] bg-muted"
                         ref={containerRef}

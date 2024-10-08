@@ -1,11 +1,16 @@
 import { z } from 'zod';
 import { Hono } from 'hono';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { verifyAuth } from '@hono/auth-js';
 import { zValidator } from '@hono/zod-validator';
 
 import { db } from '@/server/db';
-import { projects, projectsInsertSchema } from '@/server/db/schema';
+import { projects, pages, pagesInsertSchema } from '@/server/db/schema';
+
+const pagesInsertSchemaWithoutTimestamps = pagesInsertSchema.omit({
+    createdAt: true,
+    updatedAt: true
+});
 
 const app = new Hono()
     .delete(
@@ -20,16 +25,20 @@ const app = new Hono()
                 return c.json({ error: 'Unauthorized' }, 401);
             }
 
-            const data = await db
-                .delete(projects)
-                .where(
-                    and(eq(projects.id, id),
-                     eq(projects.userId, String(auth.token.id))
+            const [Projectdata, PageData] = await Promise.all([
+                db
+                    .delete(projects)
+                    .where(
+                        and(
+                            eq(projects.id, id),
+                            eq(projects.userId, String(auth.token.id))
+                        )
                     )
-                )
-                .returning();
+                    .returning(),
+                db.delete(pages).where(eq(pages.projectId, id)).returning()
+            ]);
 
-            if (data.length === 0) {
+            if (Projectdata.length === 0 || PageData.length === 0) {
                 return c.json({ error: 'Not found' }, 404);
             }
 
@@ -48,39 +57,60 @@ const app = new Hono()
                 return c.json({ error: 'Unauthorized' }, 401);
             }
 
-            const data = await db
-                .select()
-                .from(projects)
-                .where(
-                    and(eq(projects.id, id), 
-                    eq(projects.userId, 
-                      String(auth.token.id)
-                    ))
-                );
+            const [projectData, pagesData] = await Promise.all([
+                db
+                    .select()
+                    .from(projects)
+                    .where(
+                        and(
+                            eq(projects.id, id),
+                            eq(projects.userId, String(auth.token.id))
+                        )
+                    ),
+                db.select().from(pages).where(eq(pages.projectId, id))
+            ]);
 
-            if (data.length === 0) {
+            if (projectData.length === 0 || pagesData.length === 0) {
                 return c.json({ error: ' Not found' }, 404);
             }
 
-            const project = data[0];
+            const project = projectData[0];
             if (!project) {
                 return c.json({ error: 'Not found' }, 404);
             }
 
-            const duplicateData = await db
+            const duplicateProjectData = await db
                 .insert(projects)
                 .values({
                     name: `Copy of ${project.name}`,
-                    json: project.json,
-                    width: project.width,
-                    height: project.height,
                     userId: String(auth.token.id),
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })
                 .returning();
 
-            return c.json({ data: duplicateData[0] });
+            const duplicatePagesData = await Promise.all(
+                pagesData.map((page) =>
+                    db
+                        .insert(pages)
+                        .values({
+                            projectId: duplicateProjectData[0].id,
+                            json: page.json,
+                            width: page.width,
+                            height: page.height,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        })
+                        .returning()
+                )
+            );
+
+            const duplicateData = {
+                ...duplicateProjectData[0],
+                pages: duplicatePagesData
+            };
+
+            return c.json({ data: duplicateData });
         }
     )
     .get(
@@ -116,15 +146,28 @@ const app = new Hono()
         }
     )
     .patch(
-        '/:id',
+        '/:id/pages/:pageId',
         verifyAuth(),
-        zValidator('param', z.object({ id: z.string() })),
+        zValidator(
+            'param',
+            z.object({
+                id: z.string(),
+                pageId: z.string()
+            })
+        ),
         zValidator(
             'json',
-            projectsInsertSchema
+            pagesInsertSchema.omit({
+                id: true,
+                createdAt: true,
+                updatedAt: true
+            })
+        ),
+        zValidator(
+            'json',
+            pagesInsertSchema
                 .omit({
                     id: true,
-                    userId: true,
                     createdAt: true,
                     updatedAt: true
                 })
@@ -133,23 +176,20 @@ const app = new Hono()
         async (c) => {
             const auth = c.get('authUser');
             const { id } = c.req.valid('param');
+            const { pageId } = c.req.valid('param');
             const values = c.req.valid('json');
-
             if (!auth.token?.id) {
                 return c.json({ error: 'Unauthorized' }, 401);
             }
 
             const data = await db
-                .update(projects)
+                .update(pages)
                 .set({
                     ...values,
                     updatedAt: new Date()
                 })
-                .where(
-                    and(eq(projects.id, id), eq(projects.userId, String(auth.token.id)))
-                )
+                .where(and(eq(pages.id, pageId), eq(pages.projectId, id)))
                 .returning();
-
             if (data.length === 0) {
                 return c.json({ error: 'Unauthorized' }, 401);
             }
@@ -169,18 +209,16 @@ const app = new Hono()
                 return c.json({ error: 'Unauthorized' }, 401);
             }
 
-            const data = await db
+            const pagesData = await db
                 .select()
-                .from(projects)
-                .where(
-                    and(eq(projects.id, id), eq(projects.userId, String(auth.token.id)))
-                );
+                .from(pages)
+                .where(eq(pages.projectId, id));
 
-            if (data.length === 0) {
+            if (pagesData.length === 0) {
                 return c.json({ error: 'Not found' }, 404);
             }
 
-            return c.json({ data: data[0] });
+            return c.json({ data: pagesData });
         }
     )
     .post(
@@ -188,11 +226,11 @@ const app = new Hono()
         verifyAuth(),
         zValidator(
             'json',
-            projectsInsertSchema.pick({
-                name: true,
-                json: true,
-                width: true,
-                height: true
+            z.object({
+                name: z.string(),
+                json: z.string(),
+                height: z.number(),
+                width: z.number()
             })
         ),
         async (c) => {
@@ -203,21 +241,123 @@ const app = new Hono()
                 return c.json({ error: 'Unauthorized' }, 401);
             }
 
-            const data = await db
+            const projectData = await db
                 .insert(projects)
                 .values({
                     name,
-                    json,
-                    width,
-                    height,
                     userId: String(auth.token.id),
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })
                 .returning();
 
-            if (!data[0]) {
+            if (!projectData[0]) {
                 return c.json({ error: 'Something went wrong' }, 400);
+            }
+
+            const pagesData = await db
+                .insert(pages)
+                .values({
+                    projectId: projectData[0].id,
+                    json,
+                    height,
+                    width,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                })
+                .returning();
+
+            if (!pagesData[0]) {
+                return c.json({ error: 'Something went wrong' }, 400);
+            }
+
+            const data = {
+                ...projectData[0],
+                pages: pagesData
+            };
+
+            return c.json({ data: data });
+        }
+    )
+    .post(
+        '/:id/addpage',
+        verifyAuth(),
+        zValidator(
+            'json',
+            pagesInsertSchema.pick({
+                json: true,
+                height: true,
+                width: true,
+                projectId: true,
+                pageNumber: true
+            })
+        ),
+        async (c) => {
+            const auth = c.get('authUser');
+            const values = c.req.valid('json');
+            console.log(values);
+
+            if (!auth.token?.id) {
+                return c.json({ error: 'Unauthorized' }, 401);
+            }
+
+            const data = await db
+                .insert(pages)
+                .values({
+                    ...values,
+                    height: 800,
+                    width: 1200,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                })
+                .returning();
+
+            return c.json({ data: data[0] });
+        }
+    )
+    .post(
+        //this will receive the project id and update all pages as the body of the request will be an array of pages validated by the schema
+        '/:id',
+        verifyAuth(),
+        zValidator('param', z.object({ id: z.string() })),
+        zValidator('json', z.array(pagesInsertSchemaWithoutTimestamps)),
+        async (c) => {
+            const auth = c.get('authUser');
+            const { id } = c.req.valid('param');
+            const values = c.req.valid('json');
+            console.log(values);
+
+            if (!auth.token?.id) {
+                return c.json({ error: 'Unauthorized' }, 401);
+            }
+
+            // make sure page.id exists and is not empty or invalid
+            if (values.some((page) => !page.id || !page.id.trim())) {
+                return c.json({ error: 'Invalid page id' }, 400);
+            }
+            //update all pages using the array of pages
+            const data = await Promise.all(
+                values.map((page) =>
+                    db
+                        .update(pages)
+                        .set({
+                            ...page,
+                            updatedAt: new Date()
+                        })
+                        .where(
+                            page.id
+                                ? and(
+                                      eq(pages.id, page.id),
+                                      eq(pages.projectId, id)
+                                  )
+                                : eq(pages.projectId, id)
+                        )
+                        .returning()
+                )
+            );
+
+            if (data.length === 0) {
+                return c.json({ error: 'Unauthorized' }, 401);
             }
 
             return c.json({ data: data[0] });
