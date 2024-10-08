@@ -24,9 +24,9 @@ export const SettingsSidebar = ({
 }: SettingsSidebarProps) => {
     const workspace = editor?.getWorkspace();
 
-    const initialWidth = useMemo(() => `${workspace?.width ?? 0}`, [workspace]);
+    const initialWidth = useMemo(() => `${workspace?.width ?? 1200}`, [workspace]);
     const initialHeight = useMemo(
-        () => `${workspace?.height ?? 0}`,
+        () => `${workspace?.height ?? 800}`,
         [workspace]
     );
     const initialBackground = useMemo(

@@ -56,8 +56,19 @@ const buildEditor = ({
     strokeDashArray,
     setStrokeDashArray
 }: BuildEditorProps): Editor => {
+    const getWorkspace = () => {
+        return canvas.getObjects().find((object) => object.name === 'clip');
+    };
+
     const generateSaveOptions = () => {
-        const { width, height, left, top } = getWorkspace() as fabric.Rect;
+      const workspace = getWorkspace();
+    
+      if (!workspace) {
+          console.error("Workspace object not found on canvas");
+          return null; // Or handle the error appropriately
+      }
+  
+      const { width, height, left, top } = workspace as fabric.Rect;
 
         return {
             name: 'Image',
@@ -117,10 +128,6 @@ const buildEditor = ({
         canvas.loadFromJSON(data, () => {
             autoZoom();
         });
-    };
-
-    const getWorkspace = () => {
-        return canvas.getObjects().find((object) => object.name === 'clip');
     };
 
     const center = (object: fabric.Object) => {

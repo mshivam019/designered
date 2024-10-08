@@ -56,6 +56,24 @@ export const Editor = ({ pageData }: EditorProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSave = useCallback(
         debounce(() => {
+            //save the current canvas data
+            if (canvasInstances[currentPage]) {
+                const jsonData = canvasInstances[currentPage].toJSON();
+                mutate({
+                    json: JSON.stringify(jsonData) ?? '',
+                    height: pages[currentPage].height,
+                    width: pages[currentPage].width,
+                    projectId
+                });
+                setPages((prevPages) => {
+                    const updatedPages = [...prevPages];
+                    updatedPages[currentPage] = {
+                        ...updatedPages[currentPage],
+                        json: JSON.stringify(jsonData)
+                    };
+                    return updatedPages;
+                });
+            }
             saveAllPages(
                 pages.map((page) => ({
                     id: page.id,
@@ -304,7 +322,26 @@ export const Editor = ({ pageData }: EditorProps) => {
                             </Button>
                         ))}
                         <Button
-                            onClick={() =>
+                            onClick={() => {
+                                //save the current canvas data
+                                if (canvasInstances[currentPage]) {
+                                    const jsonData =
+                                        canvasInstances[currentPage].toJSON();
+                                    mutate({
+                                        json: JSON.stringify(jsonData) ?? '',
+                                        height: pages[currentPage].height,
+                                        width: pages[currentPage].width,
+                                        projectId
+                                    });
+                                    setPages((prevPages) => {
+                                        const updatedPages = [...prevPages];
+                                        updatedPages[currentPage] = {
+                                            ...updatedPages[currentPage],
+                                            json: JSON.stringify(jsonData)
+                                        };
+                                        return updatedPages;
+                                    });
+                                }
                                 saveAllPages(
                                     pages.map((page) => ({
                                         id: page.id,
@@ -314,8 +351,8 @@ export const Editor = ({ pageData }: EditorProps) => {
                                         projectId,
                                         pageNumber: page.pageNumber
                                     }))
-                                )
-                            }
+                                );
+                            }}
                         >
                             Save
                         </Button>

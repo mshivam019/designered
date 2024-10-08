@@ -295,7 +295,6 @@ const app = new Hono()
         async (c) => {
             const auth = c.get('authUser');
             const values = c.req.valid('json');
-            console.log(values);
 
             if (!auth.token?.id) {
                 return c.json({ error: 'Unauthorized' }, 401);
@@ -325,7 +324,6 @@ const app = new Hono()
             const auth = c.get('authUser');
             const { id } = c.req.valid('param');
             const values = c.req.valid('json');
-            console.log(values);
 
             if (!auth.token?.id) {
                 return c.json({ error: 'Unauthorized' }, 401);
