@@ -66,7 +66,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                     pageNumber: page.pageNumber
                 }))
             );
-        }, 5000),
+        }, 60000),
         [mutate]
     );
 
@@ -305,15 +305,16 @@ export const Editor = ({ pageData }: EditorProps) => {
                         ))}
                         <Button
                             onClick={() =>
-                                mutate({
-                                    json:
-                                        JSON.stringify(
-                                            editor?.canvas.toJSON()
-                                        ) ?? '',
-                                    height: pages[currentPage].height,
-                                    width: pages[currentPage].width,
-                                    projectId
-                                })
+                                saveAllPages(
+                                    pages.map((page) => ({
+                                        id: page.id,
+                                        json: page.json,
+                                        height: page.height,
+                                        width: page.width,
+                                        projectId,
+                                        pageNumber: page.pageNumber
+                                    }))
+                                )
                             }
                         >
                             Save
