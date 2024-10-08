@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
@@ -18,9 +15,11 @@ const config = {
         domains: ['images.unsplash.com', 'utfs.io']
     },
     webpack: (config, { webpack }) => {
-        config.plugins.push(new webpack.IgnorePlugin({
-            resourceRegExp: /^pg-native$|^cloudflare:sockets$/,
-        }))
+        config.plugins.push(
+            new webpack.IgnorePlugin({
+                resourceRegExp: /^pg-native$|^cloudflare:sockets$/
+            })
+        );
         config.externals.push({
             'utf-8-validate': 'commonjs utf-8-validate',
             bufferutil: 'commonjs bufferutil',
