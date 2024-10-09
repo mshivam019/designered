@@ -70,26 +70,20 @@ export const Editor = ({ pageData }: EditorProps) => {
             //save the current canvas data
             if (canvasInstances[currentPage]) {
                 const jsonData = canvasInstances[currentPage].toJSON();
-                mutate(
-                    {
-                        json: JSON.stringify(jsonData) ?? '',
-                        height: pages[currentPage].height,
-                        width: pages[currentPage].width,
-                        projectId
-                    },
-                    {
-                        onSuccess: () => {
-                            setPages((prevPages) => {
-                                const updatedPages = [...prevPages];
-                                updatedPages[currentPage] = {
-                                    ...updatedPages[currentPage],
-                                    json: JSON.stringify(jsonData)
-                                };
-                                return updatedPages;
-                            });
-                        }
-                    }
-                );
+                mutate({
+                    json: JSON.stringify(jsonData) ?? '',
+                    height: pages[currentPage].height,
+                    width: pages[currentPage].width,
+                    projectId
+                });
+                setPages((prevPages) => {
+                    const updatedPages = [...prevPages];
+                    updatedPages[currentPage] = {
+                        ...updatedPages[currentPage],
+                        json: JSON.stringify(jsonData)
+                    };
+                    return updatedPages;
+                });
             }
             saveAllPages(
                 pages.map((page) => ({
@@ -159,26 +153,20 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     // Add a new page
     const addNewPage = () => {
-        mutate(
-            {
-                json: JSON.stringify(editor?.canvas.toJSON()) ?? '',
-                height: pages[currentPage].height,
-                width: pages[currentPage].width,
-                projectId
-            },
-            {
-                onSuccess: () => {
-                    setPages((prevPages) => {
-                        const updatedPages = [...prevPages];
-                        updatedPages[currentPage] = {
-                            ...updatedPages[currentPage],
-                            json: JSON.stringify(editor?.canvas.toJSON())
-                        };
-                        return updatedPages;
-                    });
-                }
-            }
-        );
+        mutate({
+            json: JSON.stringify(editor?.canvas.toJSON()) ?? '',
+            height: pages[currentPage].height,
+            width: pages[currentPage].width,
+            projectId
+        });
+        setPages((prevPages) => {
+            const updatedPages = [...prevPages];
+            updatedPages[currentPage] = {
+                ...updatedPages[currentPage],
+                json: JSON.stringify(editor?.canvas.toJSON())
+            };
+            return updatedPages;
+        });
         addPage(
             {
                 projectId,
@@ -214,26 +202,21 @@ export const Editor = ({ pageData }: EditorProps) => {
         // Save the current canvas data
         if (editor && canvasInstances[currentPage]) {
             const jsonData = canvasInstances[currentPage].toJSON();
-            mutate(
-                {
-                    json: JSON.stringify(jsonData) ?? '',
-                    height: pages[currentPage].height,
-                    width: pages[currentPage].width,
-                    projectId
-                },
-                {
-                    onSuccess: () => {
-                        setPages((prevPages) => {
-                            const updatedPages = [...prevPages];
-                            updatedPages[currentPage] = {
-                                ...updatedPages[currentPage],
-                                json: JSON.stringify(jsonData)
-                            };
-                            return updatedPages;
-                        });
-                    }
-                }
-            );
+            mutate({
+                json: JSON.stringify(jsonData) ?? '',
+                height: pages[currentPage].height,
+                width: pages[currentPage].width,
+                projectId
+            });
+
+            setPages((prevPages) => {
+                const updatedPages = [...prevPages];
+                updatedPages[currentPage] = {
+                    ...updatedPages[currentPage],
+                    json: JSON.stringify(jsonData)
+                };
+                return updatedPages;
+            });
         }
 
         // Switch to the new page
@@ -242,6 +225,7 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     const onChangeActiveTool = useCallback(
         (tool: ActiveTool) => {
+            console.log('tool', tool);
             if (tool === 'draw') {
                 editor?.enableDrawingMode();
             }
@@ -338,12 +322,12 @@ export const Editor = ({ pageData }: EditorProps) => {
                 id={projectId}
                 editor={editor}
                 activeTool={activeTool}
-                onChangeActiveTool={(tool) => setActiveTool(tool)}
+                onChangeActiveTool={onChangeActiveTool}
             />
             <div className="absolute h-[calc(100%-68px)] w-full top-[68px] flex">
                 <Sidebar
                     activeTool={activeTool}
-                    onChangeActiveTool={setActiveTool}
+                    onChangeActiveTool={onChangeActiveTool}
                 />
                 <ShapeSidebar
                     editor={editor}
@@ -426,6 +410,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                                 >
                                     <PaginationLink
                                         isActive={currentPage === index}
+                                        className="cursor-pointer"
                                     >
                                         {index + 1}
                                     </PaginationLink>
