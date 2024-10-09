@@ -34,12 +34,18 @@ interface ToolbarProps {
     editor: Editor | undefined;
     activeTool: ActiveTool;
     onChangeActiveTool: (tool: ActiveTool) => void;
+    addNewPage: () => void;
+    handleDeletePage: () => void;
+    handleSave: () => void;
 }
 
 export const Toolbar = ({
     editor,
     activeTool,
-    onChangeActiveTool
+    onChangeActiveTool,
+    addNewPage,
+    handleDeletePage,
+    handleSave
 }: ToolbarProps) => {
     const initialFillColor = editor?.getActiveFillColor();
     const initialStrokeColor = editor?.getActiveStrokeColor();
@@ -152,7 +158,18 @@ export const Toolbar = ({
 
     if (editor?.selectedObjects.length === 0) {
         return (
-            <div className="shrink-0 h-[56px] border-b bg-white w-full flex items-center overflow-x-auto z-[49] p-2 gap-x-2" />
+            <div className="shrink-0 h-[56px] border-b bg-white w-full flex items-center overflow-x-auto z-[49] p-2 gap-x-2">
+                <div className="flex items-center h-full justify-center gap-3">
+                    <Button onClick={() => addNewPage()}>Add New Page</Button>
+                    <Button
+                        onClick={() => handleDeletePage()}
+                        variant="destructive"
+                    >
+                        Delete Page
+                    </Button>
+                    <Button onClick={() => handleSave()}>Save</Button>
+                </div>
+            </div>
         );
     }
 
@@ -434,6 +451,16 @@ export const Toolbar = ({
                         <Trash className="size-4" />
                     </Button>
                 </Hint>
+            </div>
+            <div className="flex items-center h-full justify-center gap-3">
+                <Button onClick={() => addNewPage()}>Add New Page</Button>
+                <Button
+                    onClick={() => handleDeletePage()}
+                    variant="destructive"
+                >
+                    Delete Page
+                </Button>
+                <Button onClick={() => handleSave()}>Save</Button>
             </div>
         </div>
     );

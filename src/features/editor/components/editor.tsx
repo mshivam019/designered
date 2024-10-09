@@ -8,7 +8,7 @@ import { type ResponseType } from '@/features/projects/api/use-get-project';
 import { useUpdateProject } from '@/features/projects/api/use-update-project';
 import { useAddPage } from '@/features/projects/api/use-add-page';
 import { useSaveAllPages } from '@/features/projects/api/use-save-all-pages';
-
+import { useDeletePage } from '@/features/projects/api/use-delete-page';
 import {
     type ActiveTool,
     selectionDependentTools
@@ -29,7 +29,14 @@ import { ImageSidebar } from '@/features/editor/components/image-sidebar';
 import { FilterSidebar } from '@/features/editor/components/filter-sidebar';
 import { DrawSidebar } from '@/features/editor/components/draw-sidebar';
 import { SettingsSidebar } from '@/features/editor/components/settings-sidebar';
-import { Button } from '@/components/ui/button';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious
+} from '@/components/ui/pagination';
 
 interface EditorProps {
     pageData: ResponseType['data'];
@@ -43,7 +50,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                 id: '',
                 json: '',
                 height: 800,
-                width: 1200
+                width: 900
             }
         ]
     );
@@ -51,6 +58,10 @@ export const Editor = ({ pageData }: EditorProps) => {
     const { mutate } = useUpdateProject(projectId, pages[currentPage].id);
     const { mutate: addPage } = useAddPage(projectId);
     const { mutate: saveAllPages } = useSaveAllPages(projectId);
+    const { mutate: deletePage } = useDeletePage(
+        projectId,
+        pages[currentPage].id
+    );
     const [canvasInstances, setCanvasInstances] = useState<fabric.Canvas[]>([]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,20 +70,26 @@ export const Editor = ({ pageData }: EditorProps) => {
             //save the current canvas data
             if (canvasInstances[currentPage]) {
                 const jsonData = canvasInstances[currentPage].toJSON();
-                mutate({
-                    json: JSON.stringify(jsonData) ?? '',
-                    height: pages[currentPage].height,
-                    width: pages[currentPage].width,
-                    projectId
-                });
-                setPages((prevPages) => {
-                    const updatedPages = [...prevPages];
-                    updatedPages[currentPage] = {
-                        ...updatedPages[currentPage],
-                        json: JSON.stringify(jsonData)
-                    };
-                    return updatedPages;
-                });
+                mutate(
+                    {
+                        json: JSON.stringify(jsonData) ?? '',
+                        height: pages[currentPage].height,
+                        width: pages[currentPage].width,
+                        projectId
+                    },
+                    {
+                        onSuccess: () => {
+                            setPages((prevPages) => {
+                                const updatedPages = [...prevPages];
+                                updatedPages[currentPage] = {
+                                    ...updatedPages[currentPage],
+                                    json: JSON.stringify(jsonData)
+                                };
+                                return updatedPages;
+                            });
+                        }
+                    }
+                );
             }
             saveAllPages(
                 pages.map((page) => ({
@@ -97,7 +114,7 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     const { init, editor } = useEditor({
         defaultState: pages[currentPage]?.json ?? '',
-        defaultWidth: pages[currentPage]?.width ?? 1200,
+        defaultWidth: pages[currentPage]?.width ?? 900,
         defaultHeight: pages[currentPage]?.height ?? 800,
         clearSelectionCallback: onClearSelection,
         saveCallback: debouncedSave
@@ -119,7 +136,7 @@ export const Editor = ({ pageData }: EditorProps) => {
         init({
             initialCanvas: canvas,
             initialContainer: containerRef.current,
-            newWidth: pages[currentPage]?.width ?? 1200,
+            newWidth: pages[currentPage]?.width ?? 900,
             newHeight: pages[currentPage]?.height ?? 800
         });
 
@@ -142,27 +159,33 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     // Add a new page
     const addNewPage = () => {
-        mutate({
-            json: JSON.stringify(editor?.canvas.toJSON()) ?? '',
-            height: pages[currentPage].height,
-            width: pages[currentPage].width,
-            projectId
-        });
-        setPages((prevPages) => {
-            const updatedPages = [...prevPages];
-            updatedPages[currentPage] = {
-                ...updatedPages[currentPage],
-                json: JSON.stringify(editor?.canvas.toJSON())
-            };
-            return updatedPages;
-        });
+        mutate(
+            {
+                json: JSON.stringify(editor?.canvas.toJSON()) ?? '',
+                height: pages[currentPage].height,
+                width: pages[currentPage].width,
+                projectId
+            },
+            {
+                onSuccess: () => {
+                    setPages((prevPages) => {
+                        const updatedPages = [...prevPages];
+                        updatedPages[currentPage] = {
+                            ...updatedPages[currentPage],
+                            json: JSON.stringify(editor?.canvas.toJSON())
+                        };
+                        return updatedPages;
+                    });
+                }
+            }
+        );
         addPage(
             {
                 projectId,
                 pageNumber: pages.length + 1,
                 json: '',
                 height: 800,
-                width: 1200
+                width: 900
             },
             {
                 onSuccess: ({ data }) => {
@@ -172,7 +195,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                             id: data.id,
                             json: '',
                             height: 800,
-                            width: 1200,
+                            width: 900,
                             createdAt: data.createdAt,
                             updatedAt: data.updatedAt,
                             projectId: data.projectId,
@@ -191,20 +214,26 @@ export const Editor = ({ pageData }: EditorProps) => {
         // Save the current canvas data
         if (editor && canvasInstances[currentPage]) {
             const jsonData = canvasInstances[currentPage].toJSON();
-            mutate({
-                json: JSON.stringify(jsonData) ?? '',
-                height: pages[currentPage].height,
-                width: pages[currentPage].width,
-                projectId
-            });
-            setPages((prevPages) => {
-                const updatedPages = [...prevPages];
-                updatedPages[currentPage] = {
-                    ...updatedPages[currentPage],
-                    json: JSON.stringify(jsonData)
-                };
-                return updatedPages;
-            });
+            mutate(
+                {
+                    json: JSON.stringify(jsonData) ?? '',
+                    height: pages[currentPage].height,
+                    width: pages[currentPage].width,
+                    projectId
+                },
+                {
+                    onSuccess: () => {
+                        setPages((prevPages) => {
+                            const updatedPages = [...prevPages];
+                            updatedPages[currentPage] = {
+                                ...updatedPages[currentPage],
+                                json: JSON.stringify(jsonData)
+                            };
+                            return updatedPages;
+                        });
+                    }
+                }
+            );
         }
 
         // Switch to the new page
@@ -229,6 +258,79 @@ export const Editor = ({ pageData }: EditorProps) => {
         },
         [activeTool, editor]
     );
+
+    const handleDeletePage = () => {
+        if (pages.length > 1) {
+            deletePage(
+                {
+                    param: {
+                        id: projectId,
+                        pageId: pages[currentPage].id
+                    }
+                },
+                {
+                    onSuccess: () => {
+                        setPages((prevPages) => {
+                            const updatedPages = [...prevPages];
+                            //find the index of the page to be deleted
+                            const index = updatedPages.findIndex(
+                                (page) => page.id === pages[currentPage].id
+                            );
+                            //remove the page from the array
+                            updatedPages.splice(index, 1);
+                            //update the pages state
+                            return updatedPages;
+                        });
+                        //switch page to current page - 1
+                        if (currentPage > 0) {
+                            setCurrentPage(currentPage - 1);
+                        } else {
+                            setCurrentPage(0);
+                        }
+                    }
+                }
+            );
+        }
+    };
+
+    const handleSave = () => {
+        {
+            //save the current canvas data
+            if (canvasInstances[currentPage]) {
+                const jsonData = canvasInstances[currentPage].toJSON();
+                mutate(
+                    {
+                        json: JSON.stringify(jsonData) ?? '',
+                        height: pages[currentPage].height,
+                        width: pages[currentPage].width,
+                        projectId
+                    },
+                    {
+                        onSuccess: () => {
+                            setPages((prevPages) => {
+                                const updatedPages = [...prevPages];
+                                updatedPages[currentPage] = {
+                                    ...updatedPages[currentPage],
+                                    json: JSON.stringify(jsonData)
+                                };
+                                return updatedPages;
+                            });
+                        }
+                    }
+                );
+            }
+            saveAllPages(
+                pages.map((page) => ({
+                    id: page.id,
+                    json: page.json,
+                    height: page.height,
+                    width: page.width,
+                    projectId,
+                    pageNumber: page.pageNumber
+                }))
+            );
+        }
+    };
 
     return (
         <div className="h-full flex flex-col">
@@ -305,61 +407,40 @@ export const Editor = ({ pageData }: EditorProps) => {
                         activeTool={activeTool}
                         onChangeActiveTool={setActiveTool}
                         key={JSON.stringify(editor?.canvas.getActiveObject())}
+                        addNewPage={addNewPage}
+                        handleDeletePage={handleDeletePage}
+                        handleSave={handleSave}
                     />
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <Button onClick={addNewPage}>Add New Page</Button>
-                        {pages.map((page, index) => (
-                            <Button
-                                key={page.id}
-                                onClick={() => switchPage(index)}
-                                variant={
-                                    currentPage === index
-                                        ? 'outline'
-                                        : 'secondary'
-                                }
-                            >
-                                Page {index + 1}
-                            </Button>
-                        ))}
-                        <Button
-                            onClick={() => {
-                                //save the current canvas data
-                                if (canvasInstances[currentPage]) {
-                                    const jsonData =
-                                        canvasInstances[currentPage].toJSON();
-                                    mutate({
-                                        json: JSON.stringify(jsonData) ?? '',
-                                        height: pages[currentPage].height,
-                                        width: pages[currentPage].width,
-                                        projectId
-                                    });
-                                    setPages((prevPages) => {
-                                        const updatedPages = [...prevPages];
-                                        updatedPages[currentPage] = {
-                                            ...updatedPages[currentPage],
-                                            json: JSON.stringify(jsonData)
-                                        };
-                                        return updatedPages;
-                                    });
-                                }
-                                saveAllPages(
-                                    pages.map((page) => ({
-                                        id: page.id,
-                                        json: page.json,
-                                        height: page.height,
-                                        width: page.width,
-                                        projectId,
-                                        pageNumber: page.pageNumber
-                                    }))
-                                );
-                            }}
-                        >
-                            Save
-                        </Button>
-                    </div>
+
+                    <Pagination>
+                        {currentPage > 0 && (
+                            <PaginationPrevious
+                                onClick={() => switchPage(currentPage - 1)}
+                            />
+                        )}
+                        <PaginationContent>
+                            {pages.map((page, index) => (
+                                <PaginationItem
+                                    key={page.id}
+                                    onClick={() => switchPage(index)}
+                                >
+                                    <PaginationLink
+                                        isActive={currentPage === index}
+                                    >
+                                        {index + 1}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            ))}
+                        </PaginationContent>
+                        {currentPage < pages.length - 1 && (
+                            <PaginationNext
+                                onClick={() => switchPage(currentPage + 1)}
+                            />
+                        )}
+                    </Pagination>
 
                     <div
-                        className="flex-1 h-[calc(100%-124px)] bg-muted"
+                        className="flex-1 h-[calc(100%-68px)] w-full relative border-l border-r border-b border-gray-200"
                         ref={containerRef}
                     >
                         <canvas ref={canvasRef} />

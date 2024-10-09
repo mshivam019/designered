@@ -61,14 +61,14 @@ const buildEditor = ({
     };
 
     const generateSaveOptions = () => {
-      const workspace = getWorkspace();
-    
-      if (!workspace) {
-          console.error("Workspace object not found on canvas");
-          return null; // Or handle the error appropriately
-      }
-  
-      const { width, height, left, top } = workspace as fabric.Rect;
+        const workspace = getWorkspace();
+
+        if (!workspace) {
+            console.error('Workspace object not found on canvas');
+            return null; // Or handle the error appropriately
+        }
+
+        const { width, height, left, top } = workspace as fabric.Rect;
 
         return {
             name: 'Image',

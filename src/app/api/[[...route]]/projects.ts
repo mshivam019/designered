@@ -305,7 +305,7 @@ const app = new Hono()
                 .values({
                     ...values,
                     height: 800,
-                    width: 1200,
+                    width: 900,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })
@@ -353,6 +353,36 @@ const app = new Hono()
                         .returning()
                 )
             );
+
+            if (data.length === 0) {
+                return c.json({ error: 'Unauthorized' }, 401);
+            }
+
+            return c.json({ data: data[0] });
+        }
+    )
+    .delete(
+        '/:id/pages/:pageId',
+        verifyAuth(),
+        zValidator(
+            'param',
+            z.object({
+                id: z.string(),
+                pageId: z.string()
+            })
+        ),
+        async (c) => {
+            const auth = c.get('authUser');
+            const { id, pageId } = c.req.valid('param');
+
+            if (!auth.token?.id) {
+                return c.json({ error: 'Unauthorized' }, 401);
+            }
+
+            const data = await db
+                .delete(pages)
+                .where(and(eq(pages.id, pageId), eq(pages.projectId, id)))
+                .returning();
 
             if (data.length === 0) {
                 return c.json({ error: 'Unauthorized' }, 401);

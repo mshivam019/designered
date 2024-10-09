@@ -41,7 +41,7 @@ export const useHistory = ({ canvas, saveCallback }: UseHistoryProps) => {
                 .getObjects()
                 .find((object) => object.name === 'clip');
             const height = workspace?.height ?? 800;
-            const width = workspace?.width ?? 1200;
+            const width = workspace?.width ?? 900;
 
             saveCallback?.({ json, height, width });
         },

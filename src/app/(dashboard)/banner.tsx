@@ -29,7 +29,7 @@ export const Banner = () => {
                 name: projectName || 'Untitled project', // Use the entered project name
                 json: '',
                 height: 800,
-                width: 1200
+                width: 900
             },
             {
                 onSuccess: ({ data }) => {
