@@ -83,7 +83,7 @@ export const authConfig = {
             const isOnDashboard =
                 nextUrl.pathname.startsWith('/dashboard') ||
                 nextUrl.pathname.startsWith('/editor');
-            const isPublicPage = ['/terms', '/privacy', '/'].includes(
+            const isPublicPage = ['/terms', '/privacy'].includes(
                 nextUrl.pathname
             );
 

@@ -36,7 +36,7 @@ export const UserButton = () => {
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator /> */}
                 <DropdownMenuItem className="h-10" onClick={() => signOut()}>
                     <LogOut className="size-4 mr-2" />
                     Log out
