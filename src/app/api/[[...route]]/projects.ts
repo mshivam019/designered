@@ -38,7 +38,7 @@ const app = new Hono()
                 db.delete(pages).where(eq(pages.projectId, id)).returning()
             ]);
 
-            if (Projectdata.length === 0 || PageData.length === 0) {
+            if (Projectdata.length === 0 && PageData.length === 0) {
                 return c.json({ error: 'Not found' }, 404);
             }
 

@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { useCreateProject } from '@/features/projects/api/use-create-project';
 import { useProjectNamePrompt } from '@/hooks/use-name';
 import { Button } from '@/components/ui/button';
+import { defaultJson } from '@/features/editor/defaultJson';
 
 export const Banner = () => {
     const router = useRouter();
@@ -27,7 +28,7 @@ export const Banner = () => {
         mutation.mutate(
             {
                 name: projectName || 'Untitled project', // Use the entered project name
-                json: '',
+                json: defaultJson,
                 height: 800,
                 width: 900
             },

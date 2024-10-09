@@ -37,6 +37,7 @@ import {
     PaginationNext,
     PaginationPrevious
 } from '@/components/ui/pagination';
+import { defaultJson } from '../defaultJson';
 
 interface EditorProps {
     pageData: ResponseType['data'];
@@ -48,7 +49,7 @@ export const Editor = ({ pageData }: EditorProps) => {
         pageData ?? [
             {
                 id: '',
-                json: '',
+                json: defaultJson,
                 height: 800,
                 width: 900
             }
@@ -71,7 +72,7 @@ export const Editor = ({ pageData }: EditorProps) => {
             if (canvasInstances[currentPage]) {
                 const jsonData = canvasInstances[currentPage].toJSON();
                 mutate({
-                    json: JSON.stringify(jsonData) ?? '',
+                    json: JSON.stringify(jsonData) ?? defaultJson,
                     height: pages[currentPage].height,
                     width: pages[currentPage].width,
                     projectId
@@ -124,7 +125,9 @@ export const Editor = ({ pageData }: EditorProps) => {
 
         const canvas = new fabric.Canvas(canvasRef.current, {
             controlsAboveOverlay: true,
-            preserveObjectStacking: true
+            preserveObjectStacking: true,
+            width: 900,
+            height: 800
         });
 
         init({
@@ -135,6 +138,25 @@ export const Editor = ({ pageData }: EditorProps) => {
         });
 
         canvas.loadFromJSON(pages[currentPage]?.json ?? '', () => {
+            // Prevent interaction with specific objects
+            canvas.forEachObject((obj) => {
+                if (obj.type === 'rect') {
+                    obj.set({
+                        selectable: false, // Disable selection
+                        hasControls: false, // Disable resize controls
+                        hasBorders: false, // Disable borders
+                        lockMovementX: true, // Prevent horizontal movement
+                        lockMovementY: true, // Prevent vertical movement
+                        lockScalingX: true, // Prevent scaling horizontally
+                        lockScalingY: true, // Prevent scaling vertically
+                        lockRotation: true, // Prevent rotation
+                        originX: 'left',
+                        originY: 'top',
+                        left: -0.5,
+                        top: -0.5
+                    });
+                }
+            });
             canvas.renderAll();
         });
 
@@ -154,7 +176,7 @@ export const Editor = ({ pageData }: EditorProps) => {
     // Add a new page
     const addNewPage = () => {
         mutate({
-            json: JSON.stringify(editor?.canvas.toJSON()) ?? '',
+            json: JSON.stringify(editor?.canvas.toJSON()) ?? defaultJson,
             height: pages[currentPage].height,
             width: pages[currentPage].width,
             projectId
@@ -171,7 +193,7 @@ export const Editor = ({ pageData }: EditorProps) => {
             {
                 projectId,
                 pageNumber: pages.length + 1,
-                json: '',
+                json: defaultJson,
                 height: 800,
                 width: 900
             },
@@ -181,7 +203,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                         ...prevPages,
                         {
                             id: data.id,
-                            json: '',
+                            json: defaultJson,
                             height: 800,
                             width: 900,
                             createdAt: data.createdAt,
@@ -203,7 +225,7 @@ export const Editor = ({ pageData }: EditorProps) => {
         if (editor && canvasInstances[currentPage]) {
             const jsonData = canvasInstances[currentPage].toJSON();
             mutate({
-                json: JSON.stringify(jsonData) ?? '',
+                json: JSON.stringify(jsonData) ?? defaultJson,
                 height: pages[currentPage].height,
                 width: pages[currentPage].width,
                 projectId
@@ -283,7 +305,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                 const jsonData = canvasInstances[currentPage].toJSON();
                 mutate(
                     {
-                        json: JSON.stringify(jsonData) ?? '',
+                        json: JSON.stringify(jsonData) ?? defaultJson,
                         height: pages[currentPage].height,
                         width: pages[currentPage].width,
                         projectId

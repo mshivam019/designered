@@ -126,6 +126,24 @@ const buildEditor = ({
         const data = JSON.parse(json);
 
         canvas.loadFromJSON(data, () => {
+            canvas.forEachObject((obj) => {
+                if (obj.type === 'rect') {
+                    obj.set({
+                        selectable: false, // Disable selection
+                        hasControls: false, // Disable resize controls
+                        hasBorders: false, // Disable borders
+                        lockMovementX: true, // Prevent horizontal movement
+                        lockMovementY: true, // Prevent vertical movement
+                        lockScalingX: true, // Prevent scaling horizontally
+                        lockScalingY: true, // Prevent scaling vertically
+                        lockRotation: true, // Prevent rotation
+                        originX: 'left',
+                        originY: 'top',
+                        left: -0.5,
+                        top: -0.5
+                    });
+                }
+            });
             autoZoom();
         });
     };
