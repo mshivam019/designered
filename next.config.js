@@ -12,7 +12,17 @@ const config = {
     },
 
     images: {
-        domains: ['images.unsplash.com', 'utfs.io']
+        remotePatterns: [
+            {
+                hostname: 'images.unsplash.com'
+            },
+            {
+                hostname: 'source.unsplash.com'
+            },
+            {
+                hostname: 'utfs.io'
+            }
+        ]
     },
     webpack: (config, { webpack }) => {
         config.plugins.push(

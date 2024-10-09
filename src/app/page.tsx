@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Smile } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactLenis } from 'lenis/react';
+import Image from 'next/image';
+import Link from 'next/link';
+import Carousel from '@/components/carousel';
 
 const BlobShape = ({ className }: { className: string }) => (
     <motion.svg
@@ -33,7 +36,7 @@ const BlobShape = ({ className }: { className: string }) => (
     </motion.svg>
 );
 
-export default function Page() {
+export default function LandingPage() {
     const containerRef = useRef<HTMLDivElement>(null!);
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, {
@@ -46,15 +49,15 @@ export default function Page() {
 
     return (
         <ReactLenis root options={{ lerp: 0.1, duration: 1.5 }}>
-            <main data-scroll-container className="bg-blue-50">
+            <main data-scroll-container className="bg-sky-50">
                 <motion.div
-                    className="fixed top-0 left-0 right-0 h-1 bg-orange-500 z-50"
+                    className="fixed top-0 left-0 right-0 h-1 bg-blue-500 z-50"
                     style={{ scaleX }}
                 />
 
                 <section className="min-h-screen flex flex-col justify-center items-center p-4 relative overflow-y-visible overflow-x-clip">
-                    <BlobShape className="absolute top-0 right-0 text-orange-200 w-96 h-96 -mr-24 -mt-24" />
-                    <BlobShape className="absolute bottom-0 left-0 text-blue-200 w-96 h-96 -ml-24 -mb-24" />
+                    <BlobShape className="absolute top-0 right-0 text-blue-200 w-96 h-96 -mr-24 -mt-24" />
+                    <BlobShape className="absolute bottom-0 left-0 text-sky-200 w-96 h-96 -ml-24 -mb-24" />
 
                     <motion.div
                         className="z-10 text-center"
@@ -62,23 +65,23 @@ export default function Page() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, ease: 'easeIn' }}
                     >
-                        <h1 className="text-6xl font-bold mb-6 text-blue-900">
-                            Find Your{' '}
-                            <span className="text-orange-500">Inner Peace</span>
+                        <h1 className="text-6xl font-bold mb-6 text-slate-900">
+                            Unleash Your{' '}
+                            <span className="text-blue-500">Creativity</span>
                         </h1>
-                        <p className="text-xl text-blue-700 mb-8 max-w-2xl">
-                            Discover tranquility with guided meditations, sleep
-                            stories, and mindfulness exercises. Your journey to
-                            a calmer mind starts here.
+                        <p className="text-xl text-slate-700 mb-8 max-w-2xl">
+                            Design stunning graphics, presentations, and social
+                            media posts with our intuitive drag-and-drop editor.
+                            No design experience needed!
                         </p>
                         <Button
                             size="lg"
-                            className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6"
+                            className="bg-blue-500 hover:bg-blue-600 text-white text-lg px-8 py-6"
                             onClick={() => {
                                 router.push('/dashboard');
                             }}
                         >
-                            Start Your Free Trial
+                            Start Designing for Free
                         </Button>
                     </motion.div>
 
@@ -108,7 +111,7 @@ export default function Page() {
                                 }
                             }}
                         >
-                            <Smile className="text-blue-900" size={32} />
+                            <Smile className="text-blue-500" size={32} />
                         </div>
                     </motion.div>
                 </section>
@@ -119,7 +122,7 @@ export default function Page() {
                         viewBox="0 0 1440 320"
                     >
                         <path
-                            fill="#eff6ff"
+                            fill="#f0f9ff"
                             fillOpacity="1"
                             d="M0,128L48,144C96,160,192,192,288,181.3C384,171,480,117,576,85.3C672,53,768,43,864,74.7C960,107,1056,181,1152,224C1248,267,1344,277,1392,282.7L1440,288L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
                         ></path>
@@ -127,7 +130,119 @@ export default function Page() {
                 </section>
 
                 <section
-                    className="py-20 px-4 bg-blue-900 text-white"
+                    className="py-20 px-4 bg-white"
+                    data-scroll-section
+                    ref={containerRef}
+                    id="features"
+                >
+                    <div className="max-w-6xl mx-auto">
+                        <motion.h2
+                            className="text-4xl font-bold mb-12 text-center text-gray-900"
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            viewport={{ once: true }}
+                        >
+                            Powerful Features for Effortless Design
+                        </motion.h2>
+                        <div className="space-y-20">
+                            <motion.div
+                                className="flex flex-col md:flex-row items-center gap-8"
+                                initial={{ opacity: 0, x: -50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.8 }}
+                                viewport={{ once: true }}
+                            >
+                                <Image
+                                    src="/image-3.jpg"
+                                    alt="Intuitive Editor"
+                                    width={400}
+                                    height={300}
+                                    className="rounded-lg shadow-lg"
+                                />
+                                <div>
+                                    <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+                                        Intuitive Editor
+                                    </h3>
+                                    <p className="text-gray-700">
+                                        Our drag-and-drop interface makes it
+                                        easy to create professional designs in
+                                        minutes. No design skills required!
+                                    </p>
+                                </div>
+                            </motion.div>
+                            <motion.div
+                                className="flex flex-col md:flex-row-reverse items-center gap-8"
+                                initial={{ opacity: 0, x: 50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.8 }}
+                                viewport={{ once: true }}
+                            >
+                                <Image
+                                    src="/image-2.jpg"
+                                    alt="AI-Powered Tools"
+                                    width={400}
+                                    height={300}
+                                    className="rounded-lg shadow-lg"
+                                />
+                                <div>
+                                    <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+                                        AI-Powered Tools
+                                    </h3>
+                                    <p className="text-gray-700">
+                                        Leverage the power of AI to enhance your
+                                        designs, generate ideas, and automate
+                                        repetitive tasks.
+                                    </p>
+                                </div>
+                            </motion.div>
+                            <motion.div
+                                className="flex flex-col md:flex-row items-center gap-8"
+                                initial={{ opacity: 0, x: -50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.8 }}
+                                viewport={{ once: true }}
+                            >
+                                <Image
+                                    src="/image-1.jpg"
+                                    alt="Vast Template Library"
+                                    width={400}
+                                    height={300}
+                                    className="rounded-lg shadow-lg"
+                                />
+                                <div>
+                                    <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+                                        Vast Template Library
+                                    </h3>
+                                    <p className="text-gray-700">
+                                        Access thousands of professionally
+                                        designed templates for any occasion or
+                                        industry. Customize them to fit your
+                                        brand.
+                                    </p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="py-20 px-4 bg-gray-100" data-scroll-section>
+                    <div className="max-w-6xl mx-auto">
+                        <motion.h2
+                            className="text-4xl font-bold mb-12 text-center text-gray-900"
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            viewport={{ once: true }}
+                        >
+                            Discover What You Can Create
+                        </motion.h2>
+                        <Carousel />
+                    </div>
+                </section>
+
+                <section
+                    className="py-20 px-4 bg-slate-900 text-white"
                     data-scroll-section
                 >
                     <div className="max-w-4xl mx-auto text-center">
@@ -138,7 +253,7 @@ export default function Page() {
                             transition={{ duration: 0.8 }}
                             viewport={{ once: true }}
                         >
-                            Start Your Mindfulness Journey Today
+                            Start Creating Beautiful Designs Today
                         </motion.h2>
                         <motion.p
                             className="text-xl mb-8"
@@ -147,8 +262,8 @@ export default function Page() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             viewport={{ once: true }}
                         >
-                            Join thousands of people improving their mental
-                            well-being. Try MindfulSpace free for 14 days.
+                            Join millions of users who trust Designered for
+                            their creative needs. Try it free for 14 days.
                         </motion.p>
                         <motion.div
                             className="flex flex-col sm:flex-row gap-4 justify-center"
@@ -159,29 +274,38 @@ export default function Page() {
                         >
                             <Button
                                 variant="secondary"
-                                className="bg-orange-500 hover:bg-orange-600 text-white text-lg py-6"
+                                className="bg-blue-500 hover:bg-blue-600 text-white text-lg py-6"
                                 onClick={() => {
-                                    router.push('/dashboard');
+                                    router.push('/register');
                                 }}
                             >
-                                Start Free Trial
+                                Start Now
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="bg-transparent border-white text-white hover:bg-white hover:text-slate-900 text-lg py-6"
+                                onClick={() => {
+                                    router.push('/login');
+                                }}
+                            >
+                                Login
                             </Button>
                         </motion.div>
                     </div>
                 </section>
 
                 <footer
-                    className="bg-blue-950 text-white py-12 px-4"
+                    className="bg-slate-950 text-white py-12 px-4"
                     data-scroll-section
                 >
                     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div>
                             <h3 className="text-2xl font-semibold mb-4">
-                                MindfulSpace
+                                Designered
                             </h3>
                             <p className="text-gray-300">
-                                Your journey to inner peace and mindfulness
-                                starts here.
+                                Empowering creativity through intuitive design
+                                tools.
                             </p>
                         </div>
                         <div>
@@ -189,30 +313,18 @@ export default function Page() {
                                 Quick Links
                             </h4>
                             <nav className="flex flex-col gap-2">
-                                <a
-                                    href="#"
-                                    className="hover:text-orange-300 transition-colors"
+                                <Link target="_blank" href="/terms">
+                                    Terms of Service
+                                </Link>
+                                <Link target="_blank" href="/privacy">
+                                    Privacy Policy
+                                </Link>
+                                <Link
+                                    target="_blank"
+                                    href="mailto:mshivam019@gmail.com"
                                 >
-                                    About Us
-                                </a>
-                                <a
-                                    href="#"
-                                    className="hover:text-orange-300 transition-colors"
-                                >
-                                    Features
-                                </a>
-                                <a
-                                    href="#"
-                                    className="hover:text-orange-300 transition-colors"
-                                >
-                                    Pricing
-                                </a>
-                                <a
-                                    href="#"
-                                    className="hover:text-orange-300 transition-colors"
-                                >
-                                    Contact
-                                </a>
+                                    Contact Us
+                                </Link>
                             </nav>
                         </div>
                         <div>
@@ -220,43 +332,58 @@ export default function Page() {
                                 Connect With Us
                             </h4>
                             <div className="flex gap-4">
-                                <a
-                                    href="#"
-                                    className="text-white hover:text-orange-300 transition-colors"
+                                <Link
+                                    href="https://github.com/mshivam019"
+                                    target="_blank"
+                                    className="text-white hover:text-blue-300 transition-colors"
                                 >
                                     <svg
                                         className="w-6 h-6"
                                         fill="currentColor"
-                                        viewBox="0 0 24 24"
+                                        viewBox="0 0 30 30"
                                         aria-hidden="true"
                                     >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
-                                            clipRule="evenodd"
-                                        />
+                                        <path d="M15,3C8.373,3,3,8.373,3,15c0,5.623,3.872,10.328,9.092,11.63C12.036,26.468,12,26.28,12,26.047v-2.051 c-0.487,0-1.303,0-1.508,0c-0.821,0-1.551-0.353-1.905-1.009c-0.393-0.729-0.461-1.844-1.435-2.526 c-0.289-0.227-0.069-0.486,0.264-0.451c0.615,0.174,1.125,0.596,1.605,1.222c0.478,0.627,0.703,0.769,1.596,0.769 c0.433,0,1.081-0.025,1.691-0.121c0.328-0.833,0.895-1.6,1.588-1.962c-3.996-0.411-5.903-2.399-5.903-5.098 c0-1.162,0.495-2.286,1.336-3.233C9.053,10.647,8.706,8.73,9.435,8c1.798,0,2.885,1.166,3.146,1.481C13.477,9.174,14.461,9,15.495,9 c1.036,0,2.024,0.174,2.922,0.483C18.675,9.17,19.763,8,21.565,8c0.732,0.731,0.381,2.656,0.102,3.594 c0.836,0.945,1.328,2.066,1.328,3.226c0,2.697-1.904,4.684-5.894,5.097C18.199,20.49,19,22.1,19,23.313v2.734 c0,0.104-0.023,0.179-0.035,0.268C23.641,24.676,27,20.236,27,15C27,8.373,21.627,3,15,3z" />
                                     </svg>
-                                </a>
-                                <a
-                                    href="#"
-                                    className="text-white hover:text-orange-300 transition-colors"
+                                </Link>
+                                <Link
+                                    href="https://www.linkedin.com/in/mshivam019"
+                                    target="_blank"
+                                    className="text-white hover:text-blue-300 transition-colors"
                                 >
                                     <svg
                                         className="w-6 h-6"
                                         fill="currentColor"
-                                        viewBox="0 0 24 24"
+                                        viewBox="0 50 300 150"
                                         aria-hidden="true"
                                     >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
-                                            clipRule="evenodd"
-                                        />
+                                        <g
+                                            fill-rule="nonzero"
+                                            stroke="none"
+                                            stroke-width="1"
+                                            stroke-linecap="butt"
+                                            stroke-linejoin="miter"
+                                            stroke-miterlimit="10"
+                                            stroke-dasharray=""
+                                            stroke-dashoffset="0"
+                                            font-family="none"
+                                            font-weight="none"
+                                            font-size="none"
+                                            text-anchor="none"
+                                            style={{
+                                                mixBlendMode: 'normal'
+                                            }}
+                                        >
+                                            <g transform="scale(5.12,5.12)">
+                                                <path d="M41,4h-32c-2.76,0 -5,2.24 -5,5v32c0,2.76 2.24,5 5,5h32c2.76,0 5,-2.24 5,-5v-32c0,-2.76 -2.24,-5 -5,-5zM17,20v19h-6v-19zM11,14.47c0,-1.4 1.2,-2.47 3,-2.47c1.8,0 2.93,1.07 3,2.47c0,1.4 -1.12,2.53 -3,2.53c-1.8,0 -3,-1.13 -3,-2.53zM39,39h-6c0,0 0,-9.26 0,-10c0,-2 -1,-4 -3.5,-4.04h-0.08c-2.42,0 -3.42,2.06 -3.42,4.04c0,0.91 0,10 0,10h-6v-19h6v2.56c0,0 1.93,-2.56 5.81,-2.56c3.97,0 7.19,2.73 7.19,8.26z"></path>
+                                            </g>
+                                        </g>
                                     </svg>
-                                </a>
-                                <a
-                                    href="#"
-                                    className="text-white hover:text-orange-300 transition-colors"
+                                </Link>
+                                <Link
+                                    href="https://x.com/mshivam0019"
+                                    target="_blank"
+                                    className="text-white hover:text-blue-300 transition-colors"
                                 >
                                     <svg
                                         className="w-6 h-6"
@@ -266,13 +393,13 @@ export default function Page() {
                                     >
                                         <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                                     </svg>
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     </div>
                     <div className="mt-8 text-center text-gray-400">
                         <p>
-                            &copy; {new Date().getFullYear()} MindfulSpace. All
+                            &copy; {new Date().getFullYear()} Designered. All
                             rights reserved.
                         </p>
                     </div>

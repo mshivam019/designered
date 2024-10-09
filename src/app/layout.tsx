@@ -7,9 +7,9 @@ import { Providers } from '@/components/providers';
 import { SessionProvider } from 'next-auth/react';
 
 const siteConfig = {
-    name: 'Next.js Starter',
-    description: 'A starter template for Next.js with Geist UI and TypeScript',
-    url: 'https://nextjs-starter.vercel.app'
+    name: 'Designered',
+    description: 'A design editor for everyone',
+    url: 'https://designered.vercel.app'
 };
 
 export const metadata = {
@@ -48,9 +48,9 @@ export const metadata = {
         creator: '@mshivam0019'
     },
     icons: {
-        icon: '/favicon.ico',
-        shortcut: '/favicon-16x16.png',
-        apple: '/apple-touch-icon.png'
+        icon: '/icon.png',
+        shortcut: '/icon.png',
+        apple: '/icon.png'
     },
     manifest: `${siteConfig.url}/site.webmanifest`
 };

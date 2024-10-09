@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -27,6 +26,7 @@ export const useProjectNamePrompt = (
 
     const handleClose = () => {
         setPromise(null);
+        setProjectName(''); // Reset the input when closing
     };
 
     const handleConfirm = () => {
@@ -40,7 +40,12 @@ export const useProjectNamePrompt = (
     };
 
     const ProjectNameDialog = () => (
-        <Dialog open={promise !== null}>
+        <Dialog
+            open={promise !== null}
+            onOpenChange={(open) => {
+                if (!open) handleCancel();
+            }}
+        >
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>

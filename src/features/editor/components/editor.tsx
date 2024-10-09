@@ -225,7 +225,6 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     const onChangeActiveTool = useCallback(
         (tool: ActiveTool) => {
-            console.log('tool', tool);
             if (tool === 'draw') {
                 editor?.enableDrawingMode();
             }

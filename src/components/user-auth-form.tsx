@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
@@ -12,7 +11,6 @@ import { userAuthSchema } from '@/lib/validations/auth';
 import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { useSignUp } from '@/features/auth/hooks/use-sign-up';
 
@@ -54,17 +52,6 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         );
 
         setIsLoading(false);
-
-        // if (!signInResult?.ok) {
-        //     return toast.error('Something went wrong.', {
-        //         description: 'Your sign in request failed. Please try again.'
-        //     });
-        // }
-
-        // return toast.success('Check your email', {
-        //     description:
-        //         "We've sent you a login link. Be sure to check your spam too."
-        // });
     }
 
     return (
@@ -82,6 +69,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                             autoComplete="name"
                             autoCorrect="off"
                             disabled={isLoading || isGoogleLoading}
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                             {...register('name')}
                         />
                         <Label className="sr-only" htmlFor="email">
@@ -95,10 +83,11 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                             autoComplete="email"
                             autoCorrect="off"
                             disabled={isLoading || isGoogleLoading}
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                             {...register('email')}
                         />
                         {errors?.email && (
-                            <p className="px-1 text-xs text-red-600">
+                            <p className="px-1 text-xs text-red-500">
                                 {errors.email.message}
                             </p>
                         )}
@@ -111,38 +100,45 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                             type="password"
                             autoComplete="current-password"
                             disabled={isLoading || isGoogleLoading}
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                             {...register('password')}
                         />
                         {errors?.password && (
-                            <p className="px-1 text-xs text-red-600">
+                            <p className="px-1 text-xs text-red-500">
                                 {errors.password.message}
                             </p>
                         )}
                     </div>
                     <button
-                        className={cn(buttonVariants())}
+                        className={cn(
+                            buttonVariants(),
+                            'bg-blue-500 hover:bg-blue-600 text-white font-medium'
+                        )}
                         disabled={isLoading}
                     >
                         {isLoading && (
-                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin text-white" />
                         )}
-                        Sign In with Email
+                        Create Account
                     </button>
                 </div>
             </form>
             <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-slate-200" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
+                    <span className="bg-white px-2 text-slate-500">
                         Or continue with
                     </span>
                 </div>
             </div>
             <button
                 type="button"
-                className={cn(buttonVariants({ variant: 'outline' }))}
+                className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                )}
                 onClick={async () => {
                     setIsGoogleLoading(true);
                     await signIn('google', { callbackUrl: '/dashboard' });

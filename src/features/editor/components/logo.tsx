@@ -6,7 +6,7 @@ export const Logo = () => {
         <Link href="/">
             <div className="size-8 relative shrink-0">
                 <Image
-                    src="/logo.svg"
+                    src="/icon.png"
                     fill
                     alt="Home"
                     className="shrink-0 hover:opacity-75 transition"
