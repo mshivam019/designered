@@ -98,7 +98,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                     pageNumber: page.pageNumber
                 }))
             );
-        }, 60000),
+        }, 60000*3),
         [mutate]
     );
 
@@ -341,7 +341,7 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     const resetPage = () => {
         if (editor) {
-            editor.canvas.loadFromJSON(defaultJson, () => {
+            editor.canvas.loadFromJSON(pages[currentPage].json ?? defaultJson, () => {
                 editor.canvas.renderAll();
             });
         }
