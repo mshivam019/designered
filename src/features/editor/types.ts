@@ -104,7 +104,9 @@ export type ActiveTool =
     | 'opacity'
     | 'filter'
     | 'settings'
-    | 'remove-bg';
+    | 'ai'
+    | 'remove-bg'
+    | 'templates';
 
 export const FILL_COLOR = 'rgba(0,0,0,1)';
 export const STROKE_COLOR = 'rgba(0,0,0,1)';
@@ -223,6 +225,7 @@ export interface Editor {
     onPaste: () => void;
     changeImageFilter: (value: string) => void;
     addImage: (value: string) => void;
+    addBase64: (value: string) => void;
     delete: () => void;
     changeFontSize: (value: number) => void;
     getActiveFontSize: () => number;

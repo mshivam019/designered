@@ -249,6 +249,33 @@ const buildEditor = ({
                 }
             );
         },
+        addBase64: (value: string) => {
+            let imageDataUrl;
+
+            // Detect if it's a PNG or JPEG
+            if (value.startsWith('/9j/')) {
+                imageDataUrl = `data:image/jpeg;base64,${value}`;
+            } else if (value.startsWith('iVBORw0KGgo')) {
+                imageDataUrl = `data:image/png;base64,${value}`;
+            } else {
+                console.error('Unsupported image format');
+                return;
+            }
+            fabric.Image.fromURL(
+                imageDataUrl,
+                (image) => {
+                    const workspace = getWorkspace();
+
+                    image.scaleToWidth(workspace?.width ?? 0);
+                    image.scaleToHeight(workspace?.height ?? 0);
+
+                    addToCanvas(image);
+                },
+                {
+                    crossOrigin: 'anonymous'
+                }
+            );
+        },
         delete: () => {
             canvas
                 .getActiveObjects()

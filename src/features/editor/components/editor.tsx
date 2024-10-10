@@ -38,6 +38,7 @@ import {
     PaginationPrevious
 } from '@/components/ui/pagination';
 import { defaultJson } from '../defaultJson';
+import { AiSidebar } from './ai-sidebar';
 
 interface EditorProps {
     pageData: ResponseType['data'];
@@ -55,6 +56,7 @@ export const Editor = ({ pageData }: EditorProps) => {
             }
         ]
     );
+    console.log(pages);
     const [currentPage, setCurrentPage] = useState(0);
     const { mutate } = useUpdateProject(projectId, pages[currentPage].id);
     const { mutate: addPage } = useAddPage(projectId);
@@ -337,6 +339,14 @@ export const Editor = ({ pageData }: EditorProps) => {
         }
     };
 
+    const resetPage = () => {
+        if (editor) {
+            editor.canvas.loadFromJSON(defaultJson, () => {
+                editor.canvas.renderAll();
+            });
+        }
+    };
+
     return (
         <div className="h-full flex flex-col">
             <Navbar
@@ -395,7 +405,11 @@ export const Editor = ({ pageData }: EditorProps) => {
                     activeTool={activeTool}
                     onChangeActiveTool={onChangeActiveTool}
                 />
-
+                <AiSidebar
+                    editor={editor}
+                    activeTool={activeTool}
+                    onChangeActiveTool={onChangeActiveTool}
+                />
                 <DrawSidebar
                     editor={editor}
                     activeTool={activeTool}
@@ -415,6 +429,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                         addNewPage={addNewPage}
                         handleDeletePage={handleDeletePage}
                         handleSave={handleSave}
+                        resetPage={resetPage}
                     />
 
                     <Pagination>

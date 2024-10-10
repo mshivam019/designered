@@ -37,6 +37,7 @@ interface ToolbarProps {
     addNewPage: () => void;
     handleDeletePage: () => void;
     handleSave: () => void;
+    resetPage: () => void;
 }
 
 export const Toolbar = ({
@@ -45,7 +46,8 @@ export const Toolbar = ({
     onChangeActiveTool,
     addNewPage,
     handleDeletePage,
-    handleSave
+    handleSave,
+    resetPage
 }: ToolbarProps) => {
     const initialFillColor = editor?.getActiveFillColor();
     const initialStrokeColor = editor?.getActiveStrokeColor();
@@ -168,6 +170,9 @@ export const Toolbar = ({
                         Delete Page
                     </Button>
                     <Button onClick={() => handleSave()}>Save</Button>
+                    <Button onClick={() => resetPage()} variant="destructive">
+                        Reset Page
+                    </Button>
                 </div>
             </div>
         );
@@ -461,6 +466,9 @@ export const Toolbar = ({
                     Delete Page
                 </Button>
                 <Button onClick={() => handleSave()}>Save</Button>
+                <Button onClick={() => resetPage()} variant="destructive">
+                    Reset Page
+                </Button>
             </div>
         </div>
     );
