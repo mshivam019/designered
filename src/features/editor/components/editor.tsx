@@ -56,7 +56,6 @@ export const Editor = ({ pageData }: EditorProps) => {
             }
         ]
     );
-    console.log(pages);
     const [currentPage, setCurrentPage] = useState(0);
     const { mutate } = useUpdateProject(projectId, pages[currentPage].id);
     const { mutate: addPage } = useAddPage(projectId);
@@ -73,12 +72,12 @@ export const Editor = ({ pageData }: EditorProps) => {
             //save the current canvas data
             if (canvasInstances[currentPage]) {
                 const jsonData = canvasInstances[currentPage].toJSON();
-                mutate({
-                    json: JSON.stringify(jsonData) ?? defaultJson,
-                    height: pages[currentPage].height,
-                    width: pages[currentPage].width,
-                    projectId
-                });
+                //update current page data
+                const updatedPages = [...pages];
+                updatedPages[currentPage] = {
+                    ...updatedPages[currentPage],
+                    json: JSON.stringify(jsonData)
+                };
                 setPages((prevPages) => {
                     const updatedPages = [...prevPages];
                     updatedPages[currentPage] = {
@@ -98,7 +97,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                     pageNumber: page.pageNumber
                 }))
             );
-        }, 60000*3),
+        }, 60000 * 3),
         [mutate]
     );
 
@@ -110,7 +109,7 @@ export const Editor = ({ pageData }: EditorProps) => {
     }, [activeTool]);
 
     const { init, editor } = useEditor({
-        defaultState: pages[currentPage]?.json ?? '',
+        defaultState: pages[currentPage]?.json ?? defaultJson,
         defaultWidth: pages[currentPage]?.width ?? 900,
         defaultHeight: pages[currentPage]?.height ?? 800,
         clearSelectionCallback: onClearSelection,
@@ -267,36 +266,45 @@ export const Editor = ({ pageData }: EditorProps) => {
     );
 
     const handleDeletePage = () => {
+        const pageToDelete = pages[currentPage].id;
         if (pages.length > 1) {
-            deletePage(
-                {
-                    param: {
-                        id: projectId,
-                        pageId: pages[currentPage].id
+            // first switch to a different page
+            if (currentPage === 0) {
+                switchPage(1);
+            } else {
+                switchPage(0);
+            }
+            //update the page numbers
+            const updatedPages = pages.filter(
+                (page) => page.id !== pageToDelete
+            );
+            updatedPages.forEach((page, index) => {
+                saveAllPages([
+                    {
+                        id: page.id,
+                        json: page.json,
+                        height: page.height,
+                        width: page.width,
+                        projectId,
+                        pageNumber: index + 1
                     }
-                },
-                {
-                    onSuccess: () => {
-                        setPages((prevPages) => {
-                            const updatedPages = [...prevPages];
-                            //find the index of the page to be deleted
-                            const index = updatedPages.findIndex(
-                                (page) => page.id === pages[currentPage].id
-                            );
-                            //remove the page from the array
-                            updatedPages.splice(index, 1);
-                            //update the pages state
-                            return updatedPages;
-                        });
-                        //switch page to current page - 1
-                        if (currentPage > 0) {
-                            setCurrentPage(currentPage - 1);
-                        } else {
-                            setCurrentPage(0);
-                        }
-                    }
+                ]);
+            });
+            setPages(updatedPages);
+            setCurrentPage(0);
+            editor?.canvas.loadFromJSON(
+                updatedPages[0].json ?? defaultJson,
+                () => {
+                    editor?.canvas.renderAll();
                 }
             );
+            // delete the current page
+            deletePage({
+                param: {
+                    id: projectId,
+                    pageId: pageToDelete
+                }
+            });
         }
     };
 
@@ -305,26 +313,12 @@ export const Editor = ({ pageData }: EditorProps) => {
             //save the current canvas data
             if (canvasInstances[currentPage]) {
                 const jsonData = canvasInstances[currentPage].toJSON();
-                mutate(
-                    {
-                        json: JSON.stringify(jsonData) ?? defaultJson,
-                        height: pages[currentPage].height,
-                        width: pages[currentPage].width,
-                        projectId
-                    },
-                    {
-                        onSuccess: () => {
-                            setPages((prevPages) => {
-                                const updatedPages = [...prevPages];
-                                updatedPages[currentPage] = {
-                                    ...updatedPages[currentPage],
-                                    json: JSON.stringify(jsonData)
-                                };
-                                return updatedPages;
-                            });
-                        }
-                    }
-                );
+                //update current page data
+                const updatedPages = [...pages];
+                updatedPages[currentPage] = {
+                    ...updatedPages[currentPage],
+                    json: JSON.stringify(jsonData)
+                };
             }
             saveAllPages(
                 pages.map((page) => ({
@@ -341,7 +335,18 @@ export const Editor = ({ pageData }: EditorProps) => {
 
     const resetPage = () => {
         if (editor) {
-            editor.canvas.loadFromJSON(pages[currentPage].json ?? defaultJson, () => {
+            editor.canvas.loadFromJSON(
+                pages[currentPage].json ?? defaultJson,
+                () => {
+                    editor.canvas.renderAll();
+                }
+            );
+        }
+    };
+
+    const clearPage = () => {
+        if (editor) {
+            editor.canvas.loadFromJSON(defaultJson, () => {
                 editor.canvas.renderAll();
             });
         }
@@ -430,6 +435,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                         handleDeletePage={handleDeletePage}
                         handleSave={handleSave}
                         resetPage={resetPage}
+                        clearPage={clearPage}
                     />
 
                     <Pagination>

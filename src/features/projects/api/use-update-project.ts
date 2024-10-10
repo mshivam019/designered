@@ -40,7 +40,7 @@ export const useUpdateProject = (id: string, pageId: string) => {
             toast.success('Saved page!');
         },
         onError: () => {
-            toast.error('Failed to update project');
+            toast.error('Failed to update page, press save and refresh the page');
         }
     });
 
