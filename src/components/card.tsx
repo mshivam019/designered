@@ -23,7 +23,7 @@ export default function Card({ image }: CardProps): JSX.Element {
             <AnimatePresence>
                 {showOverlay && (
                     <motion.div
-                        className="absolute left-0 top-0 bottom-0 right-0 z-10 flex justify-center items-center"
+                        className="absolute left-0 top-0 bottom-0 right-0 z-10 flex justify-center items-center cursor-pointer"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

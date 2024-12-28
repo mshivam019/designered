@@ -55,10 +55,8 @@ export default function Carousel() {
     return (
         <div className="relative w-full h-[300px]">
             {' '}
-            {/* Added container with fixed height */}
             <div className="absolute inset-0 overflow-hidden">
                 {' '}
-                {/* Added overflow container */}
                 <motion.div
                     className="absolute h-full flex gap-4"
                     style={{ x: xTranslation }}

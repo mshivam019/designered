@@ -154,7 +154,7 @@ export default function LandingPage() {
                                 viewport={{ once: true }}
                             >
                                 <Image
-                                    src="/image-3.jpg"
+                                    src="/tools.png"
                                     alt="Intuitive Editor"
                                     width={400}
                                     height={300}
@@ -165,7 +165,7 @@ export default function LandingPage() {
                                         Intuitive Editor
                                     </h3>
                                     <p className="text-gray-700">
-                                        Our drag-and-drop interface makes it
+                                        Our simple click to insert interface makes it
                                         easy to create professional designs in
                                         minutes. No design skills required!
                                     </p>
@@ -179,7 +179,7 @@ export default function LandingPage() {
                                 viewport={{ once: true }}
                             >
                                 <Image
-                                    src="/image-2.jpg"
+                                    src="/ai.png"
                                     alt="AI-Powered Tools"
                                     width={400}
                                     height={300}
@@ -204,21 +204,20 @@ export default function LandingPage() {
                                 viewport={{ once: true }}
                             >
                                 <Image
-                                    src="/image-1.jpg"
-                                    alt="Vast Template Library"
+                                    src="/multipage.png"
+                                    alt="Multi Page Editor"
                                     width={400}
                                     height={300}
                                     className="rounded-lg shadow-lg"
                                 />
                                 <div>
                                     <h3 className="text-2xl font-semibold mb-4 text-gray-900">
-                                        Vast Template Library
+                                        Multi Page Editor
                                     </h3>
                                     <p className="text-gray-700">
-                                        Access thousands of professionally
-                                        designed templates for any occasion or
-                                        industry. Customize them to fit your
-                                        brand.
+                                        Create multiple pages with ease. Add
+                                        text, images, shapes, filters, and
+                                        more.
                                     </p>
                                 </div>
                             </motion.div>
