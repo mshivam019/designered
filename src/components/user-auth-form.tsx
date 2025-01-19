@@ -13,12 +13,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Icons } from '@/components/icons';
 import { useSignUp } from '@/features/auth/hooks/use-sign-up';
+import { usePathname } from 'next/navigation';
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
 type FormData = z.infer<typeof userAuthSchema>;
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
+    const pathname = usePathname();
     const mutation = useSignUp();
     const {
         register,
@@ -62,16 +64,18 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                         <Label className="sr-only" htmlFor="name">
                             Name
                         </Label>
-                        <Input
-                            id="name"
-                            placeholder="Name"
-                            type="text"
-                            autoComplete="name"
-                            autoCorrect="off"
-                            disabled={isLoading || isGoogleLoading}
-                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                            {...register('name')}
-                        />
+                        {pathname !== '/login' && (
+                            <Input
+                                id="name"
+                                placeholder="Name"
+                                type="text"
+                                autoComplete="name"
+                                autoCorrect="off"
+                                disabled={isLoading || isGoogleLoading}
+                                className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                                {...register('name')}
+                            />
+                        )}
                         <Label className="sr-only" htmlFor="email">
                             Email
                         </Label>
@@ -119,7 +123,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                         {isLoading && (
                             <Icons.spinner className="mr-2 h-4 w-4 animate-spin text-white" />
                         )}
-                        Create Account
+                        Let's Begin
                     </button>
                 </div>
             </form>
