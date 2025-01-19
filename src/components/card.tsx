@@ -9,7 +9,7 @@ interface CardProps {
     image: string;
 }
 
-export default function Card({ image }: CardProps): JSX.Element {
+export default function Card({ image }: CardProps): React.JSX.Element {
     const [showOverlay, setShowOverlay] = useState(false);
     const router = useRouter();
 

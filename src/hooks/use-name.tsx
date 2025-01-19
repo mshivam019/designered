@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 export const useProjectNamePrompt = (
     title: string,
     message: string
-): [() => JSX.Element, () => Promise<string | null>] => {
+): [() => React.JSX.Element, () => Promise<string | null>] => {
     const [promise, setPromise] = useState<{
         resolve: (value: string | null) => void;
     } | null>(null);

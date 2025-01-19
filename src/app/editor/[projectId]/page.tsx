@@ -1,4 +1,5 @@
-'use client';
+'use client';;
+import { use } from "react";
 
 import Link from 'next/link';
 import { Loader, TriangleAlert } from 'lucide-react';
@@ -9,13 +10,15 @@ import { Editor } from '@/features/editor/components/editor';
 import { Button } from '@/components/ui/button';
 
 interface EditorProjectIdPageProps {
-    params: {
+    params: Promise<{
         projectId: string;
-    };
+    }>;
 }
 
-const EditorProjectIdPage = ({ params }: EditorProjectIdPageProps) => {
-    const { data, isLoading, isError } = useGetProject(params.projectId);
+const EditorProjectIdPage = (props: EditorProjectIdPageProps) => {
+    const params = use(props.params) as { projectId: string };
+    const { projectId } = params;
+    const { data, isLoading, isError } = useGetProject(projectId);
     if (isLoading || !data) {
         return (
             <div className="h-full flex flex-col items-center justify-center">

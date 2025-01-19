@@ -7,8 +7,7 @@ await import('./src/env.js');
 /** @type {import("next").NextConfig} */
 const config = {
     experimental: {
-        reactCompiler: true,
-        ppr: true
+        reactCompiler: true
     },
 
     images: {
