@@ -35,23 +35,30 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
     async function onSubmit(data: FormData) {
         setIsLoading(true);
-
-        mutation.mutate(
-            {
+        if(pathname === '/login') {
+            signIn('credentials', {
                 email: data.email,
-                name: data.name,
-                password: data.password
-            },
-            {
-                onSuccess: () => {
-                    signIn('credentials', {
-                        email: data.email,
-                        password: data.password,
-                        callbackUrl: '/'
-                    });
+                password: data.password,
+                callbackUrl: '/'
+            });
+        }else{
+            mutation.mutate(
+                {
+                    email: data.email,
+                    name: data.name,
+                    password: data.password
+                },
+                {
+                    onSuccess: () => {
+                        signIn('credentials', {
+                            email: data.email,
+                            password: data.password,
+                            callbackUrl: '/'
+                        });
+                    }
                 }
-            }
-        );
+            );
+        }
 
         setIsLoading(false);
     }
