@@ -1,6 +1,6 @@
 # Designered
 
-Desigenered is a canva quick design tool.
+Desigenered is a canva like quick design tool.
 
 https://designered.vercel.app/
  
