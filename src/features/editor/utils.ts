@@ -10,8 +10,6 @@ export function transformText(objects) {
     objects.forEach((item) => {
         if (item.objects) {
             transformText(item.objects);
-        } else {
-            item.type === 'text' && item.type === 'textbox';
         }
     });
 }
