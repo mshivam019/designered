@@ -6,8 +6,7 @@ import {
     pgTable,
     text,
     primaryKey,
-    integer,
-    serial
+    integer
 } from 'drizzle-orm/pg-core';
 import type { AdapterAccount } from 'next-auth/adapters';
 
@@ -118,7 +117,7 @@ export const pages = pgTable('page', {
         .references(() => projects.id, {
             onDelete: 'cascade'
         }),
-    pageNumber: serial('pageNumber').notNull(),
+    pageNumber: integer('pageNumber').notNull(),
     json: text('json').notNull(),
     height: integer('height').notNull(),
     width: integer('width').notNull(),

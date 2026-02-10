@@ -98,6 +98,7 @@ const app = new Hono()
                             json: page.json,
                             width: page.width,
                             height: page.height,
+                            pageNumber: page.pageNumber,
                             createdAt: new Date(),
                             updatedAt: new Date()
                         })
@@ -262,6 +263,7 @@ const app = new Hono()
                     json,
                     height,
                     width,
+                    pageNumber: 1,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })
@@ -304,8 +306,6 @@ const app = new Hono()
                 .insert(pages)
                 .values({
                     ...values,
-                    height: 800,
-                    width: 900,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })

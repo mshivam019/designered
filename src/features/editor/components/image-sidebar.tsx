@@ -8,7 +8,7 @@ import { useGetImages } from '@/features/images/api/use-get-images';
 import { cn } from '@/lib/utils';
 import { UploadButton } from '@/lib/uploadthing';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface UploadedImage {
     url: string;
@@ -22,7 +22,24 @@ interface ImageSidebarProps {
     onChangeActiveTool: (tool: ActiveTool) => void;
 }
 
-const STORAGE_KEY = 'uploadedImages';
+const STORAGE_KEY = 'uploadedImages_v1';
+
+function loadCachedImages(): UploadedImage[] {
+    try {
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+            return JSON.parse(cached) as UploadedImage[];
+        }
+    } catch (error) {
+        console.error('Failed to parse cached images:', error);
+        localStorage.removeItem(STORAGE_KEY);
+    }
+    return [];
+}
+
+function saveCachedImages(images: UploadedImage[]) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(images));
+}
 
 export const ImageSidebar = ({
     editor,
@@ -30,27 +47,9 @@ export const ImageSidebar = ({
     onChangeActiveTool
 }: ImageSidebarProps) => {
     const { data, isLoading, isError } = useGetImages();
-    const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+    const [uploadedImages, setUploadedImages] =
+        useState<UploadedImage[]>(loadCachedImages);
     const [isUploading, setIsUploading] = useState(false);
-
-    // Load cached images on mount
-    useEffect(() => {
-        const cached = localStorage.getItem(STORAGE_KEY);
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached) as UploadedImage[];
-                setUploadedImages(parsed);
-            } catch (error) {
-                console.error('Failed to parse cached images:', error);
-                localStorage.removeItem(STORAGE_KEY);
-            }
-        }
-    }, []);
-
-    // Update cache when images change
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(uploadedImages));
-    }, [uploadedImages]);
 
     const onClose = () => {
         onChangeActiveTool('select');
@@ -109,10 +108,11 @@ export const ImageSidebar = ({
                                     name: res[0].name,
                                     timestamp: Date.now()
                                 };
-                                setUploadedImages((prev) => [
-                                    newImage,
-                                    ...prev
-                                ]);
+                                setUploadedImages((prev) => {
+                                    const updated = [newImage, ...prev];
+                                    saveCachedImages(updated);
+                                    return updated;
+                                });
                             }
                         }}
                         onUploadError={() => {
@@ -140,6 +140,7 @@ export const ImageSidebar = ({
                                             fill
                                             src={image.url}
                                             alt={image.name}
+                                            sizes="100px"
                                             className="object-cover"
                                         />
                                     </button>
@@ -182,6 +183,7 @@ export const ImageSidebar = ({
                                     fill
                                     src={image.urls.small}
                                     alt={image.alt_description ?? 'Image'}
+                                    sizes="160px"
                                     className="object-cover"
                                 />
                                 <Link

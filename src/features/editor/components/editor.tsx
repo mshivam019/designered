@@ -1,44 +1,89 @@
 'use client';
 
-import { fabric } from 'fabric';
-import debounce from 'lodash.debounce';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { Plus, Trash2, Save, Minimize, ZoomIn, ZoomOut } from 'lucide-react';
 
 import { type ResponseType } from '@/features/projects/api/use-get-project';
-import { useUpdateProject } from '@/features/projects/api/use-update-project';
 import { useAddPage } from '@/features/projects/api/use-add-page';
 import { useSaveAllPages } from '@/features/projects/api/use-save-all-pages';
 import { useDeletePage } from '@/features/projects/api/use-delete-page';
+import dynamic from 'next/dynamic';
 import {
     type ActiveTool,
+    type PageJson,
     selectionDependentTools
 } from '@/features/editor/types';
 import { Navbar } from '@/features/editor/components/navbar';
-import { Footer } from '@/features/editor/components/footer';
 import { useEditor } from '@/features/editor/hooks/use-editor';
 import { Sidebar } from '@/features/editor/components/sidebar';
 import { Toolbar } from '@/features/editor/components/toolbar';
-import { ShapeSidebar } from '@/features/editor/components/shape-sidebar';
-import { FillColorSidebar } from '@/features/editor/components/fill-color-sidebar';
-import { StrokeColorSidebar } from '@/features/editor/components/stroke-color-sidebar';
-import { StrokeWidthSidebar } from '@/features/editor/components/stroke-width-sidebar';
-import { OpacitySidebar } from '@/features/editor/components/opacity-sidebar';
-import { TextSidebar } from '@/features/editor/components/text-sidebar';
-import { FontSidebar } from '@/features/editor/components/font-sidebar';
-import { ImageSidebar } from '@/features/editor/components/image-sidebar';
-import { FilterSidebar } from '@/features/editor/components/filter-sidebar';
-import { DrawSidebar } from '@/features/editor/components/draw-sidebar';
-import { SettingsSidebar } from '@/features/editor/components/settings-sidebar';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious
-} from '@/components/ui/pagination';
+
+const ShapeSidebar = dynamic(() =>
+    import('@/features/editor/components/shape-sidebar').then((m) => ({
+        default: m.ShapeSidebar
+    }))
+);
+const FillColorSidebar = dynamic(() =>
+    import('@/features/editor/components/fill-color-sidebar').then((m) => ({
+        default: m.FillColorSidebar
+    }))
+);
+const StrokeColorSidebar = dynamic(() =>
+    import('@/features/editor/components/stroke-color-sidebar').then((m) => ({
+        default: m.StrokeColorSidebar
+    }))
+);
+const StrokeWidthSidebar = dynamic(() =>
+    import('@/features/editor/components/stroke-width-sidebar').then((m) => ({
+        default: m.StrokeWidthSidebar
+    }))
+);
+const OpacitySidebar = dynamic(() =>
+    import('@/features/editor/components/opacity-sidebar').then((m) => ({
+        default: m.OpacitySidebar
+    }))
+);
+const TextSidebar = dynamic(() =>
+    import('@/features/editor/components/text-sidebar').then((m) => ({
+        default: m.TextSidebar
+    }))
+);
+const FontSidebar = dynamic(() =>
+    import('@/features/editor/components/font-sidebar').then((m) => ({
+        default: m.FontSidebar
+    }))
+);
+const ImageSidebar = dynamic(() =>
+    import('@/features/editor/components/image-sidebar').then((m) => ({
+        default: m.ImageSidebar
+    }))
+);
+const FilterSidebar = dynamic(() =>
+    import('@/features/editor/components/filter-sidebar').then((m) => ({
+        default: m.FilterSidebar
+    }))
+);
+const DrawSidebar = dynamic(() =>
+    import('@/features/editor/components/draw-sidebar').then((m) => ({
+        default: m.DrawSidebar
+    }))
+);
+const SettingsSidebar = dynamic(() =>
+    import('@/features/editor/components/settings-sidebar').then((m) => ({
+        default: m.SettingsSidebar
+    }))
+);
+import { Button } from '@/components/ui/button';
+import { Hint } from '@/components/hint';
 import { defaultJson } from '../defaultJson';
-import { AiSidebar } from './ai-sidebar';
+
+const PageCanvas = dynamic(
+    () =>
+        import('./page-canvas').then((m) => ({
+            default: m.PageCanvas
+        })),
+    { ssr: false }
+);
 
 interface EditorProps {
     pageData: ResponseType['data'];
@@ -51,54 +96,18 @@ export const Editor = ({ pageData }: EditorProps) => {
             {
                 id: '',
                 json: defaultJson,
-                height: 800,
-                width: 900
+                height: 900,
+                width: 1200
             }
         ]
     );
     const [currentPage, setCurrentPage] = useState(0);
-    const { mutate } = useUpdateProject(projectId, pages[currentPage].id);
-    const { mutate: addPage } = useAddPage(projectId);
+
+    const { mutate: addPageMutate } = useAddPage(projectId);
     const { mutate: saveAllPages } = useSaveAllPages(projectId);
     const { mutate: deletePage } = useDeletePage(
         projectId,
-        pages[currentPage].id
-    );
-    const [canvasInstances, setCanvasInstances] = useState<fabric.Canvas[]>([]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedSave = useCallback(
-        debounce(() => {
-            //save the current canvas data
-            if (canvasInstances[currentPage]) {
-                const jsonData = canvasInstances[currentPage].toJSON();
-                //update current page data
-                const updatedPages = [...pages];
-                updatedPages[currentPage] = {
-                    ...updatedPages[currentPage],
-                    json: JSON.stringify(jsonData)
-                };
-                setPages((prevPages) => {
-                    const updatedPages = [...prevPages];
-                    updatedPages[currentPage] = {
-                        ...updatedPages[currentPage],
-                        json: JSON.stringify(jsonData)
-                    };
-                    return updatedPages;
-                });
-            }
-            saveAllPages(
-                pages.map((page) => ({
-                    id: page.id,
-                    json: page.json,
-                    height: page.height,
-                    width: page.width,
-                    projectId,
-                    pageNumber: page.pageNumber
-                }))
-            );
-        }, 60000 * 3),
-        [mutate]
+        pages[currentPage]?.id
     );
 
     const [activeTool, setActiveTool] = useState<ActiveTool>('select');
@@ -108,95 +117,88 @@ export const Editor = ({ pageData }: EditorProps) => {
         }
     }, [activeTool]);
 
-    const { init, editor } = useEditor({
-        defaultState: pages[currentPage]?.json ?? defaultJson,
-        defaultWidth: pages[currentPage]?.width ?? 900,
-        defaultHeight: pages[currentPage]?.height ?? 800,
+    const noopSave = useCallback(() => {}, []);
+
+    const {
+        editor,
+        objects,
+        setObjects,
+        selectedIds,
+        setSelectedIds,
+        isDrawingMode,
+        setIsDrawingMode,
+        drawingPoints,
+        setDrawingPoints,
+        background,
+        pageWidth,
+        pageHeight,
+        stageRef,
+        containerRef,
+        stageSize,
+        zoom,
+        autoZoom,
+        historySave
+    } = useEditor({
+        defaultState: pages[0]?.json ?? defaultJson,
+        defaultWidth: pages[0]?.width ?? 1200,
+        defaultHeight: pages[0]?.height ?? 900,
         clearSelectionCallback: onClearSelection,
-        saveCallback: debouncedSave
+        saveCallback: noopSave
     });
 
-    // Initialize canvas
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    // Switch between pages
+    const switchPage = useCallback(
+        (pageIndex: number) => {
+            if (!editor || pageIndex === currentPage) return;
 
-    // Initialize fabric canvas for the current page
-    useEffect(() => {
-        if (!canvasRef.current || !containerRef.current) return;
-
-        const canvas = new fabric.Canvas(canvasRef.current, {
-            controlsAboveOverlay: true,
-            preserveObjectStacking: true,
-            width: 900,
-            height: 800
-        });
-
-        init({
-            initialCanvas: canvas,
-            initialContainer: containerRef.current,
-            newWidth: pages[currentPage]?.width ?? 900,
-            newHeight: pages[currentPage]?.height ?? 800
-        });
-
-        canvas.loadFromJSON(pages[currentPage]?.json ?? '', () => {
-            // Prevent interaction with specific objects
-            canvas.forEachObject((obj) => {
-                if (obj.type === 'rect') {
-                    obj.set({
-                        selectable: false, // Disable selection
-                        hasControls: false, // Disable resize controls
-                        hasBorders: false, // Disable borders
-                        lockMovementX: true, // Prevent horizontal movement
-                        lockMovementY: true, // Prevent vertical movement
-                        lockScalingX: true, // Prevent scaling horizontally
-                        lockScalingY: true, // Prevent scaling vertically
-                        lockRotation: true, // Prevent rotation
-                        originX: 'left',
-                        originY: 'top',
-                        left: -0.5,
-                        top: -0.5
-                    });
-                }
+            // Save current page state
+            const currentJson = JSON.stringify({
+                objects,
+                background
+            } satisfies PageJson);
+            setPages((prev) => {
+                const updated = [...prev];
+                updated[currentPage] = {
+                    ...updated[currentPage],
+                    json: currentJson
+                };
+                return updated;
             });
-            canvas.renderAll();
-        });
 
-        // Store canvas instance
-        setCanvasInstances((prevInstances) => {
-            const updatedInstances = [...prevInstances];
-            updatedInstances[currentPage] = canvas;
-            return updatedInstances;
-        });
+            setCurrentPage(pageIndex);
 
-        return () => {
-            canvas.dispose();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [init, currentPage]);
+            // Load target page
+            const targetJson = pages[pageIndex]?.json ?? defaultJson;
+            editor.loadJson(targetJson);
+        },
+        [editor, currentPage, pages, objects, background]
+    );
 
     // Add a new page
-    const addNewPage = () => {
-        mutate({
-            json: JSON.stringify(editor?.canvas.toJSON()) ?? defaultJson,
-            height: pages[currentPage].height,
-            width: pages[currentPage].width,
-            projectId
-        });
+    const addNewPage = useCallback(() => {
+        if (!editor) return;
+
+        // Save current page
+        const currentJson = JSON.stringify({
+            objects,
+            background
+        } satisfies PageJson);
         setPages((prevPages) => {
-            const updatedPages = [...prevPages];
-            updatedPages[currentPage] = {
-                ...updatedPages[currentPage],
-                json: JSON.stringify(editor?.canvas.toJSON())
+            const updated = [...prevPages];
+            updated[currentPage] = {
+                ...updated[currentPage],
+                json: currentJson
             };
-            return updatedPages;
+            return updated;
         });
-        addPage(
+
+        addPageMutate(
             {
                 projectId,
                 pageNumber: pages.length + 1,
                 json: defaultJson,
-                height: 800,
-                width: 900
+                height: 900,
+                width: 1200
             },
             {
                 onSuccess: ({ data }) => {
@@ -205,8 +207,8 @@ export const Editor = ({ pageData }: EditorProps) => {
                         {
                             id: data.id,
                             json: defaultJson,
-                            height: 800,
-                            width: 900,
+                            height: 900,
+                            width: 1200,
                             createdAt: data.createdAt,
                             updatedAt: data.updatedAt,
                             projectId: data.projectId,
@@ -214,143 +216,114 @@ export const Editor = ({ pageData }: EditorProps) => {
                         }
                     ]);
 
-                    setCurrentPage(pages.length);
+                    const newIndex = pages.length;
+                    setCurrentPage(newIndex);
+                    editor.loadJson(defaultJson);
                 }
             }
         );
-    };
-
-    // Switch between pages
-    const switchPage = (pageIndex: number) => {
-        // Save the current canvas data
-        if (editor && canvasInstances[currentPage]) {
-            const jsonData = canvasInstances[currentPage].toJSON();
-            mutate({
-                json: JSON.stringify(jsonData) ?? defaultJson,
-                height: pages[currentPage].height,
-                width: pages[currentPage].width,
-                projectId
-            });
-
-            setPages((prevPages) => {
-                const updatedPages = [...prevPages];
-                updatedPages[currentPage] = {
-                    ...updatedPages[currentPage],
-                    json: JSON.stringify(jsonData)
-                };
-                return updatedPages;
-            });
-        }
-
-        // Switch to the new page
-        setCurrentPage(pageIndex);
-    };
+    }, [
+        editor,
+        currentPage,
+        pages,
+        objects,
+        background,
+        addPageMutate,
+        projectId
+    ]);
 
     const onChangeActiveTool = useCallback(
         (tool: ActiveTool) => {
             if (tool === 'draw') {
                 editor?.enableDrawingMode();
             }
-
             if (activeTool === 'draw') {
                 editor?.disableDrawingMode();
             }
-
             if (tool === activeTool) {
                 return setActiveTool('select');
             }
-
             setActiveTool(tool);
         },
         [activeTool, editor]
     );
 
-    const handleDeletePage = () => {
-        const pageToDelete = pages[currentPage].id;
-        if (pages.length > 1) {
-            // first switch to a different page
-            if (currentPage === 0) {
-                switchPage(1);
-            } else {
-                switchPage(0);
-            }
-            //update the page numbers
-            const updatedPages = pages.filter(
-                (page) => page.id !== pageToDelete
-            );
-            updatedPages.forEach((page, index) => {
-                saveAllPages([
-                    {
-                        id: page.id,
-                        json: page.json,
-                        height: page.height,
-                        width: page.width,
-                        projectId,
-                        pageNumber: index + 1
-                    }
-                ]);
-            });
-            setPages(updatedPages);
-            setCurrentPage(0);
-            editor?.canvas.loadFromJSON(
-                updatedPages[0].json ?? defaultJson,
-                () => {
-                    editor?.canvas.renderAll();
-                }
-            );
-            // delete the current page
-            deletePage({
-                param: {
-                    id: projectId,
-                    pageId: pageToDelete
-                }
-            });
-        }
-    };
+    // Delete page
+    const handleDeletePageAt = useCallback(
+        (indexToDelete: number) => {
+            if (!editor || pages.length <= 1) return;
 
-    const handleSave = () => {
-        {
-            //save the current canvas data
-            if (canvasInstances[currentPage]) {
-                const jsonData = canvasInstances[currentPage].toJSON();
-                //update current page data
-                const updatedPages = [...pages];
-                updatedPages[currentPage] = {
-                    ...updatedPages[currentPage],
-                    json: JSON.stringify(jsonData)
-                };
+            const pageToDelete = pages[indexToDelete].id;
+            const updatedPages = pages.filter((_, i) => i !== indexToDelete);
+
+            let newActiveIndex = currentPage;
+            if (indexToDelete === currentPage) {
+                newActiveIndex = indexToDelete > 0 ? indexToDelete - 1 : 0;
+            } else if (indexToDelete < currentPage) {
+                newActiveIndex = currentPage - 1;
             }
+
             saveAllPages(
-                pages.map((page) => ({
+                updatedPages.map((page, index) => ({
                     id: page.id,
                     json: page.json,
                     height: page.height,
                     width: page.width,
                     projectId,
-                    pageNumber: page.pageNumber
+                    pageNumber: index + 1
                 }))
             );
-        }
-    };
 
-    const resetPage = () => {
-        if (editor) {
-            editor.canvas.loadFromJSON(
-                pages[currentPage].json ?? defaultJson,
-                () => {
-                    editor.canvas.renderAll();
-                }
-            );
-        }
-    };
+            setPages(updatedPages);
+            setCurrentPage(newActiveIndex);
 
-    const clearPage = () => {
-        if (editor) {
-            editor.canvas.loadFromJSON(defaultJson, () => {
-                editor.canvas.renderAll();
+            if (indexToDelete === currentPage) {
+                editor.loadJson(
+                    updatedPages[newActiveIndex]?.json ?? defaultJson
+                );
+            }
+
+            deletePage({
+                param: { id: projectId, pageId: pageToDelete }
             });
-        }
-    };
+        },
+        [editor, pages, currentPage, saveAllPages, deletePage, projectId]
+    );
+
+    // Manual save
+    const handleSave = useCallback(() => {
+        if (!editor) return;
+
+        const currentJson = JSON.stringify({
+            objects,
+            background
+        } satisfies PageJson);
+        const updatedPages = [...pages];
+        updatedPages[currentPage] = {
+            ...updatedPages[currentPage],
+            json: currentJson
+        };
+        setPages(updatedPages);
+
+        saveAllPages(
+            updatedPages.map((page) => ({
+                id: page.id,
+                json: page.json,
+                height: page.height,
+                width: page.width,
+                projectId,
+                pageNumber: page.pageNumber
+            }))
+        );
+    }, [
+        editor,
+        objects,
+        background,
+        pages,
+        currentPage,
+        saveAllPages,
+        projectId
+    ]);
 
     return (
         <div className="h-full flex flex-col">
@@ -359,6 +332,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                 editor={editor}
                 activeTool={activeTool}
                 onChangeActiveTool={onChangeActiveTool}
+                onSave={handleSave}
             />
             <div className="absolute h-[calc(100%-68px)] w-full top-[68px] flex">
                 <Sidebar
@@ -410,11 +384,6 @@ export const Editor = ({ pageData }: EditorProps) => {
                     activeTool={activeTool}
                     onChangeActiveTool={onChangeActiveTool}
                 />
-                <AiSidebar
-                    editor={editor}
-                    activeTool={activeTool}
-                    onChangeActiveTool={onChangeActiveTool}
-                />
                 <DrawSidebar
                     editor={editor}
                     activeTool={activeTool}
@@ -425,54 +394,166 @@ export const Editor = ({ pageData }: EditorProps) => {
                     activeTool={activeTool}
                     onChangeActiveTool={onChangeActiveTool}
                 />
-                <main className="bg-muted flex-1 overflow-auto relative flex flex-col">
+                <main className="bg-muted flex-1 overflow-hidden relative flex flex-col">
+                    {/* Floating toolbar */}
                     <Toolbar
                         editor={editor}
                         activeTool={activeTool}
                         onChangeActiveTool={setActiveTool}
-                        key={JSON.stringify(editor?.canvas.getActiveObject())}
-                        addNewPage={addNewPage}
-                        handleDeletePage={handleDeletePage}
-                        handleSave={handleSave}
-                        resetPage={resetPage}
-                        clearPage={clearPage}
+                        key={`${editor?.selectedObjects[0]?.type ?? 'none'}-${editor?.selectedObjects.length ?? 0}`}
                     />
 
-                    <Pagination>
-                        {currentPage > 0 && (
-                            <PaginationPrevious
-                                onClick={() => switchPage(currentPage - 1)}
-                            />
-                        )}
-                        <PaginationContent>
-                            {pages.map((page, index) => (
-                                <PaginationItem
-                                    key={page.id}
-                                    onClick={() => switchPage(index)}
-                                >
-                                    <PaginationLink
-                                        isActive={currentPage === index}
-                                        className="cursor-pointer"
+                    {/* Canvas area */}
+                    <div className="flex-1 overflow-y-auto">
+                        <div className="flex flex-col items-center gap-4 py-4">
+                            {/* Page slots */}
+                            {pages.map((page, i) => {
+                                return (
+                                    <div
+                                        key={page.id || `page-${i}`}
+                                        className="group w-full"
                                     >
-                                        {index + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-                        </PaginationContent>
-                        {currentPage < pages.length - 1 && (
-                            <PaginationNext
-                                onClick={() => switchPage(currentPage + 1)}
-                            />
-                        )}
-                    </Pagination>
+                                        <div
+                                            className={`relative bg-white rounded-sm overflow-hidden transition-shadow duration-200 mx-auto ${
+                                                i === currentPage
+                                                    ? 'shadow-[0_2px_12px_rgba(0,0,0,0.12)]'
+                                                    : 'shadow-[0_1px_6px_rgba(0,0,0,0.08)] cursor-pointer hover:shadow-[0_2px_10px_rgba(0,0,0,0.12)]'
+                                            }`}
+                                            style={{
+                                                width: `min(1100px, calc(100% - 40px))`,
+                                                aspectRatio: `${page.width} / ${page.height}`
+                                            }}
+                                            onClick={() =>
+                                                i !== currentPage &&
+                                                switchPage(i)
+                                            }
+                                        >
+                                            {i === currentPage ? (
+                                                <PageCanvas
+                                                    objects={objects}
+                                                    setObjects={setObjects}
+                                                    selectedIds={selectedIds}
+                                                    setSelectedIds={
+                                                        setSelectedIds
+                                                    }
+                                                    background={background}
+                                                    pageWidth={pageWidth}
+                                                    pageHeight={pageHeight}
+                                                    stageRef={stageRef}
+                                                    containerRef={containerRef}
+                                                    stageSize={stageSize}
+                                                    zoom={zoom}
+                                                    isDrawingMode={
+                                                        isDrawingMode
+                                                    }
+                                                    drawingPoints={
+                                                        drawingPoints
+                                                    }
+                                                    setDrawingPoints={
+                                                        setDrawingPoints
+                                                    }
+                                                    setIsDrawingMode={
+                                                        setIsDrawingMode
+                                                    }
+                                                    save={historySave}
+                                                    strokeColor={
+                                                        editor?.getActiveStrokeColor() ??
+                                                        'rgba(0,0,0,1)'
+                                                    }
+                                                    strokeWidth={
+                                                        editor?.getActiveStrokeWidth() ??
+                                                        2
+                                                    }
+                                                    autoZoom={autoZoom}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-white flex items-center justify-center text-muted-foreground text-sm">
+                                                    Page {i + 1}
+                                                </div>
+                                            )}
+                                        </div>
 
-                    <div
-                        className="flex-1 h-[calc(100%-68px)] w-full relative border-l border-r border-b border-gray-200"
-                        ref={containerRef}
-                    >
-                        <canvas ref={canvasRef} />
+                                        {/* Page label + delete */}
+                                        <div className="flex items-center justify-center gap-2 mt-2.5">
+                                            <span className="text-xs text-muted-foreground font-medium select-none">
+                                                {i + 1}
+                                            </span>
+                                            {pages.length > 1 && (
+                                                <button
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeletePageAt(i);
+                                                    }}
+                                                >
+                                                    <Trash2 className="size-3" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {/* Add page button */}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 text-muted-foreground hover:text-foreground mb-4"
+                                onClick={addNewPage}
+                            >
+                                <Plus className="size-4" />
+                                Add page
+                            </Button>
+                        </div>
                     </div>
-                    <Footer editor={editor} />
+
+                    {/* Floating bottom-right controls */}
+                    <div className="absolute bottom-3 right-3 z-50 flex items-center gap-0.5 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border px-1 py-0.5">
+                        <Hint label="Save" side="top" sideOffset={10}>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                onClick={handleSave}
+                            >
+                                <Save className="size-3.5" />
+                            </Button>
+                        </Hint>
+                        <div className="w-px h-4 bg-border mx-0.5" />
+                        <Hint label="Zoom out" side="top" sideOffset={10}>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                onClick={() => editor?.zoomOut()}
+                            >
+                                <ZoomOut className="size-3.5" />
+                            </Button>
+                        </Hint>
+                        <span className="text-xs text-muted-foreground font-medium min-w-[3ch] text-center select-none tabular-nums">
+                            {Math.round(zoom * 100)}%
+                        </span>
+                        <Hint label="Zoom in" side="top" sideOffset={10}>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                onClick={() => editor?.zoomIn()}
+                            >
+                                <ZoomIn className="size-3.5" />
+                            </Button>
+                        </Hint>
+                        <Hint label="Reset zoom" side="top" sideOffset={10}>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                onClick={() => editor?.autoZoom()}
+                            >
+                                <Minimize className="size-3.5" />
+                            </Button>
+                        </Hint>
+                    </div>
                 </main>
             </div>
         </div>

@@ -34,22 +34,12 @@ interface ToolbarProps {
     editor: Editor | undefined;
     activeTool: ActiveTool;
     onChangeActiveTool: (tool: ActiveTool) => void;
-    addNewPage: () => void;
-    handleDeletePage: () => void;
-    handleSave: () => void;
-    resetPage: () => void;
-    clearPage: () => void;
 }
 
 export const Toolbar = ({
     editor,
     activeTool,
-    onChangeActiveTool,
-    addNewPage,
-    handleDeletePage,
-    handleSave,
-    resetPage,
-    clearPage
+    onChangeActiveTool
 }: ToolbarProps) => {
     const initialFillColor = editor?.getActiveFillColor();
     const initialStrokeColor = editor?.getActiveStrokeColor();
@@ -161,30 +151,11 @@ export const Toolbar = ({
     };
 
     if (editor?.selectedObjects.length === 0) {
-        return (
-            <div className="shrink-0 h-[56px] border-b bg-white w-full flex items-center overflow-x-auto z-[49] p-2 gap-x-2">
-                <div className="flex items-center h-full justify-center gap-3">
-                    <Button onClick={() => addNewPage()}>Add New Page</Button>
-                    <Button
-                        onClick={() => handleDeletePage()}
-                        variant="destructive"
-                    >
-                        Delete Page
-                    </Button>
-                    <Button onClick={() => handleSave()}>Save</Button>
-                    <Button onClick={() => resetPage()} variant="destructive">
-                        Reset Page
-                    </Button>
-                    <Button onClick={() => clearPage()} variant="destructive">
-                        Clear Page
-                    </Button>
-                </div>
-            </div>
-        );
+        return null;
     }
 
     return (
-        <div className="shrink-0 h-[56px] border-b bg-white w-full flex items-center overflow-x-auto z-[49] p-2 gap-x-2">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[60] rounded-xl shadow-lg border bg-white/95 backdrop-blur-sm px-3 py-2 flex items-center gap-x-1.5">
             {!isImage && (
                 <div className="flex items-center h-full justify-center">
                     <Hint label="Color" side="bottom" sideOffset={5}>
@@ -461,22 +432,6 @@ export const Toolbar = ({
                         <Trash className="size-4" />
                     </Button>
                 </Hint>
-            </div>
-            <div className="flex items-center h-full justify-center gap-3">
-                <Button onClick={() => addNewPage()}>Add New Page</Button>
-                <Button
-                    onClick={() => handleDeletePage()}
-                    variant="destructive"
-                >
-                    Delete Page
-                </Button>
-                <Button onClick={() => handleSave()}>Save</Button>
-                <Button onClick={() => resetPage()} variant="destructive">
-                    Reset Page
-                </Button>
-                <Button onClick={() => clearPage()} variant="destructive">
-                    Clear Page
-                </Button>
             </div>
         </div>
     );

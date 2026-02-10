@@ -10,6 +10,7 @@ import {
     Redo2,
     Undo2,
     File,
+    Save,
     Cloud as BsCloudCheck,
     CloudOff as BsCloudSlash
 } from 'lucide-react';
@@ -35,17 +36,19 @@ interface NavbarProps {
     editor: Editor | undefined;
     activeTool: ActiveTool;
     onChangeActiveTool: (tool: ActiveTool) => void;
+    onSave: () => void;
 }
 
 export const Navbar = ({
     id,
     editor,
     activeTool,
-    onChangeActiveTool
+    onChangeActiveTool,
+    onSave
 }: NavbarProps) => {
     const data = useMutationState({
         filters: {
-            mutationKey: ['project', { id }],
+            mutationKey: ['projectpages', { id }],
             exact: true
         },
         select: (mutation) => mutation.state.status
@@ -88,6 +91,18 @@ export const Navbar = ({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="min-w-60">
+                        <DropdownMenuItem
+                            onClick={onSave}
+                            className="flex items-center gap-x-2"
+                        >
+                            <Save className="size-8" />
+                            <div>
+                                <p>Save</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Save project to cloud
+                                </p>
+                            </div>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => openFilePicker()}
                             className="flex items-center gap-x-2"

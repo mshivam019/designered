@@ -1,42 +1,70 @@
-import { type fabric } from 'fabric';
-import { type ITextboxOptions } from 'fabric/fabric-impl';
 import * as material from 'material-colors';
+import type Konva from 'konva';
 
-export const JSON_KEYS = [
-    'name',
-    'gradientAngle',
-    'selectable',
-    'hasControls',
-    'linkData',
-    'editable',
-    'extensionType',
-    'extension'
-];
+// --- Canvas Object Types ---
+
+export type CanvasObjectType =
+    | 'rect'
+    | 'circle'
+    | 'text'
+    | 'image'
+    | 'line'
+    | 'polygon'
+    | 'regularPolygon';
+
+export interface CanvasObject {
+    id: string;
+    type: CanvasObjectType;
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+    radius?: number;
+    sides?: number;
+    points?: number[];
+    fill: string;
+    stroke: string;
+    strokeWidth: number;
+    dash?: number[];
+    opacity: number;
+    rotation: number;
+    scaleX: number;
+    scaleY: number;
+    draggable: boolean;
+    text?: string;
+    fontSize?: number;
+    fontFamily?: string;
+    fontWeight?: number | string;
+    fontStyle?: 'normal' | 'italic';
+    textDecoration?: string;
+    align?: string;
+    src?: string;
+    filters?: string[];
+    cornerRadius?: number;
+    name?: string;
+    closed?: boolean;
+}
+
+export interface PageJson {
+    objects: CanvasObject[];
+    background: string;
+}
 
 export const filters = [
     'none',
-    'polaroid',
+    'grayscale',
     'sepia',
-    'kodachrome',
     'contrast',
-    'brightness',
-    'greyscale',
-    'brownie',
-    'vintage',
-    'technicolor',
-    'pixelate',
-    'invert',
+    'brighten',
     'blur',
-    'sharpen',
+    'invert',
+    'pixelate',
     'emboss',
-    'removecolor',
-    'blacknwhite',
-    'vibrance',
-    'blendcolor',
-    'huerotate',
-    'resize',
-    'saturation',
-    'gamma'
+    'noise',
+    'posterize',
+    'solarize',
+    'hsl',
+    'enhance'
 ];
 
 export const fonts = [
@@ -104,7 +132,6 @@ export type ActiveTool =
     | 'opacity'
     | 'filter'
     | 'settings'
-    | 'ai'
     | 'remove-bg'
     | 'templates';
 
@@ -118,50 +145,46 @@ export const FONT_WEIGHT = 400;
 
 export const CIRCLE_OPTIONS = {
     radius: 225,
-    left: 100,
-    top: 100,
+    x: 100,
+    y: 100,
     fill: FILL_COLOR,
     stroke: STROKE_COLOR,
     strokeWidth: STROKE_WIDTH
 };
 
 export const RECTANGLE_OPTIONS = {
-    left: 100,
-    top: 100,
+    x: 100,
+    y: 100,
     fill: FILL_COLOR,
     stroke: STROKE_COLOR,
     strokeWidth: STROKE_WIDTH,
     width: 400,
-    height: 400,
-    angle: 0
+    height: 400
 };
 
 export const DIAMOND_OPTIONS = {
-    left: 100,
-    top: 100,
+    x: 100,
+    y: 100,
     fill: FILL_COLOR,
     stroke: STROKE_COLOR,
     strokeWidth: STROKE_WIDTH,
     width: 600,
-    height: 600,
-    angle: 0
+    height: 600
 };
 
 export const TRIANGLE_OPTIONS = {
-    left: 100,
-    top: 100,
+    x: 100,
+    y: 100,
     fill: FILL_COLOR,
     stroke: STROKE_COLOR,
     strokeWidth: STROKE_WIDTH,
     width: 400,
-    height: 400,
-    angle: 0
+    height: 400
 };
 
 export const TEXT_OPTIONS = {
-    type: 'textbox',
-    left: 100,
-    top: 100,
+    x: 100,
+    y: 100,
     fill: FILL_COLOR,
     fontSize: FONT_SIZE,
     fontFamily: FONT_FAMILY
@@ -189,18 +212,30 @@ export type BuildEditorProps = {
     autoZoom: () => void;
     copy: () => void;
     paste: () => void;
-    canvas: fabric.Canvas;
+    objects: CanvasObject[];
+    objectsRef: React.RefObject<CanvasObject[]>;
+    setObjects: React.Dispatch<React.SetStateAction<CanvasObject[]>>;
+    selectedIds: string[];
+    setSelectedIds: (ids: string[]) => void;
+    stageRef: React.RefObject<Konva.Stage | null>;
     fillColor: string;
     strokeColor: string;
     strokeWidth: number;
-    selectedObjects: fabric.Object[];
     strokeDashArray: number[];
     fontFamily: string;
+    background: string;
+    setBackground: (value: string) => void;
+    pageWidth: number;
+    pageHeight: number;
+    setPageWidth: (value: number) => void;
+    setPageHeight: (value: number) => void;
     setStrokeDashArray: (value: number[]) => void;
     setFillColor: (value: string) => void;
     setStrokeColor: (value: string) => void;
     setStrokeWidth: (value: number) => void;
     setFontFamily: (value: string) => void;
+    isDrawingMode: boolean;
+    setIsDrawingMode: (value: boolean) => void;
 };
 
 export interface Editor {
@@ -216,7 +251,9 @@ export interface Editor {
     autoZoom: () => void;
     zoomIn: () => void;
     zoomOut: () => void;
-    getWorkspace: () => fabric.Object | undefined;
+    getWorkspace: () =>
+        | { width: number; height: number; fill: string }
+        | undefined;
     changeBackground: (value: string) => void;
     changeSize: (value: { width: number; height: number }) => void;
     enableDrawingMode: () => void;
@@ -225,7 +262,6 @@ export interface Editor {
     onPaste: () => void;
     changeImageFilter: (value: string) => void;
     addImage: (value: string) => void;
-    addBase64: (value: string) => void;
     delete: () => void;
     changeFontSize: (value: number) => void;
     getActiveFontSize: () => number;
@@ -241,7 +277,7 @@ export interface Editor {
     getActiveFontWeight: () => number;
     getActiveFontFamily: () => string;
     changeFontFamily: (value: string) => void;
-    addText: (value: string, options?: ITextboxOptions) => void;
+    addText: (value: string, options?: Partial<CanvasObject>) => void;
     getActiveOpacity: () => number;
     changeOpacity: (value: number) => void;
     bringForward: () => void;
@@ -256,10 +292,10 @@ export interface Editor {
     addTriangle: () => void;
     addInverseTriangle: () => void;
     addDiamond: () => void;
-    canvas: fabric.Canvas;
+    stageRef: React.RefObject<Konva.Stage | null>;
     getActiveFillColor: () => string;
     getActiveStrokeColor: () => string;
     getActiveStrokeWidth: () => number;
     getActiveStrokeDashArray: () => number[];
-    selectedObjects: fabric.Object[];
+    selectedObjects: CanvasObject[];
 }

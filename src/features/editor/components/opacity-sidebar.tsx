@@ -29,7 +29,7 @@ export const OpacitySidebar = ({
 
     useEffect(() => {
         if (selectedObject) {
-            setOpacity(selectedObject.get('opacity') ?? 1);
+            setOpacity(selectedObject.opacity ?? 1);
         }
     }, [selectedObject]);
 

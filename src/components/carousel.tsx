@@ -3,19 +3,21 @@ import { animate, motion, useMotionValue } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import useMeasure from 'react-use-measure';
 
+const images = [
+    '/image-1.jpg',
+    '/image-2.jpg',
+    '/image-3.jpg',
+    '/image-4.jpg',
+    '/image-5.jpg',
+    '/image-6.jpg',
+    '/image-7.jpg',
+    '/image-8.jpg'
+];
+
+const FAST_DURATION = 25;
+const SLOW_DURATION = 75;
+
 export default function Carousel() {
-    const images = [
-        '/image-1.jpg',
-        '/image-2.jpg',
-        '/image-3.jpg',
-        '/image-4.jpg',
-        '/image-5.jpg',
-        '/image-6.jpg',
-        '/image-7.jpg',
-        '/image-8.jpg'
-    ];
-    const FAST_DURATION = 25;
-    const SLOW_DURATION = 75;
     const [duration, setDuration] = useState(FAST_DURATION);
     let [ref, { width }] = useMeasure();
     const xTranslation = useMotionValue(0);

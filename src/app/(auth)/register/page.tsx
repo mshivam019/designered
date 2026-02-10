@@ -60,7 +60,7 @@ export default function RegisterPage() {
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <div className="flex flex-col space-y-2 text-center">
                         <div className="w-12 h-12 mx-auto relative">
-                            <Image src="/icon.png" alt="Designered" fill />
+                            <Image src="/icon.png" alt="Designered" fill sizes="48px" />
                         </div>
                         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
                             Create an account

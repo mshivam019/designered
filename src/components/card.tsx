@@ -50,6 +50,7 @@ export default function Card({ image }: CardProps): React.JSX.Element {
                 src={image}
                 alt={image}
                 fill
+                sizes="200px"
                 style={{ objectFit: 'cover' }}
             />
         </motion.div>

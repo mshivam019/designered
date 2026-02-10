@@ -1,22 +1,29 @@
-import { fabric } from 'fabric';
 import { useEvent } from 'react-use';
 
+import { type CanvasObject } from '@/features/editor/types';
+
 interface UseHotkeysProps {
-    canvas: fabric.Canvas | null;
     undo: () => void;
     redo: () => void;
     save: (skip?: boolean) => void;
     copy: () => void;
     paste: () => void;
+    objects: CanvasObject[];
+    selectedIds: string[];
+    setSelectedIds: (ids: string[]) => void;
+    setObjects: React.Dispatch<React.SetStateAction<CanvasObject[]>>;
 }
 
 export const useHotkeys = ({
-    canvas,
     undo,
     redo,
     save,
     copy,
-    paste
+    paste,
+    objects,
+    selectedIds,
+    setSelectedIds,
+    setObjects
 }: UseHotkeysProps) => {
     useEvent('keydown', (event: KeyboardEvent) => {
         const isCtrlKey = event.ctrlKey || event.metaKey;
@@ -28,8 +35,10 @@ export const useHotkeys = ({
         if (isInput) return;
 
         if (isBackspace) {
-            canvas?.remove(...canvas.getActiveObjects());
-            canvas?.discardActiveObject();
+            setObjects((prev) =>
+                prev.filter((o) => !selectedIds.includes(o.id))
+            );
+            setSelectedIds([]);
         }
 
         if (isCtrlKey && event.key === 'z') {
@@ -59,16 +68,7 @@ export const useHotkeys = ({
 
         if (isCtrlKey && event.key === 'a') {
             event.preventDefault();
-            canvas?.discardActiveObject();
-
-            const allObjects = canvas
-                ?.getObjects()
-                .filter((object) => object.selectable);
-
-            canvas?.setActiveObject(
-                new fabric.ActiveSelection(allObjects, { canvas })
-            );
-            canvas?.renderAll();
+            setSelectedIds(objects.map((o) => o.id));
         }
     });
 };

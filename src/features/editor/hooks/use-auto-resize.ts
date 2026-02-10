@@ -1,90 +1,36 @@
-import { fabric } from 'fabric';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 
 interface UseAutoResizeProps {
-    canvas: fabric.Canvas | null;
-    container: HTMLDivElement | null;
+    containerRef: React.RefObject<HTMLDivElement | null>;
+    pageWidth: number;
+    pageHeight: number;
 }
 
-export const useAutoResize = ({ canvas, container }: UseAutoResizeProps) => {
+export const useAutoResize = ({
+    containerRef,
+    pageWidth,
+    pageHeight
+}: UseAutoResizeProps) => {
+    const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+    const [zoom, setZoom] = useState(1);
+
     const autoZoom = useCallback(() => {
-        if (!canvas || !container) return;
+        const container = containerRef.current;
+        if (!container) return;
 
-        const width = container.offsetWidth;
-        const height = container.offsetHeight;
+        const containerWidth = container.offsetWidth;
+        const containerHeight = container.offsetHeight;
 
-        canvas.setWidth(width);
-        canvas.setHeight(height);
+        if (containerWidth === 0 || containerHeight === 0) return;
 
-        const center = canvas.getCenter();
+        const zoomRatio = 0.95;
+        const scaleX = containerWidth / pageWidth;
+        const scaleY = containerHeight / pageHeight;
+        const newZoom = Math.min(scaleX, scaleY) * zoomRatio;
 
-        const zoomRatio = 0.85;
-        const localWorkspace = canvas
-            .getObjects()
-            .find((object) => object.name === 'clip');
-        if (!localWorkspace) return;
-        // @ts-ignore
-        const scale = fabric.util.findScaleToFit(localWorkspace, {
-            width: width,
-            height: height
-        });
+        setStageSize({ width: containerWidth, height: containerHeight });
+        setZoom(newZoom);
+    }, [containerRef, pageWidth, pageHeight]);
 
-        const zoom = zoomRatio * scale;
-
-        canvas.setViewportTransform(fabric.iMatrix.concat());
-        canvas.zoomToPoint(new fabric.Point(center.left, center.top), zoom);
-
-        if (!localWorkspace) return;
-
-        const workspaceCenter = localWorkspace.getCenterPoint();
-        const viewportTransform = canvas.viewportTransform;
-
-        if (
-            canvas.width === undefined ||
-            canvas.height === undefined ||
-            !viewportTransform
-        ) {
-            return;
-        }
-        if (
-            viewportTransform.length < 6 ||
-            viewportTransform === undefined ||
-            typeof viewportTransform[0] !== 'number' ||
-            typeof viewportTransform[3] !== 'number'
-        ) {
-            return;
-        }
-        viewportTransform[4] =
-            canvas.width / 2 - workspaceCenter.x * viewportTransform[0];
-
-        viewportTransform[5] =
-            canvas.height / 2 - workspaceCenter.y * viewportTransform[3];
-
-        canvas.setViewportTransform(viewportTransform);
-
-        localWorkspace.clone((cloned: fabric.Rect) => {
-            canvas.clipPath = cloned;
-            canvas.requestRenderAll();
-        });
-    }, [canvas, container]);
-
-    useEffect(() => {
-        let resizeObserver: ResizeObserver | null = null;
-
-        if (canvas && container) {
-            resizeObserver = new ResizeObserver(() => {
-                autoZoom();
-            });
-
-            resizeObserver.observe(container);
-        }
-
-        return () => {
-            if (resizeObserver) {
-                resizeObserver.disconnect();
-            }
-        };
-    }, [canvas, container, autoZoom]);
-
-    return { autoZoom };
+    return { autoZoom, stageSize, zoom };
 };

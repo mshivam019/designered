@@ -6,9 +6,8 @@ await import('./src/env.js');
 
 /** @type {import("next").NextConfig} */
 const config = {
-    experimental: {
-        reactCompiler: true
-    },
+    reactCompiler: true,
+    turbopack: {},
 
     images: {
         remotePatterns: [
@@ -23,19 +22,19 @@ const config = {
             }
         ]
     },
-    webpack: (config, { webpack }) => {
-        config.plugins.push(
-            new webpack.IgnorePlugin({
-                resourceRegExp: /^pg-native$|^cloudflare:sockets$/
-            })
-        );
-        config.externals.push({
-            'utf-8-validate': 'commonjs utf-8-validate',
-            bufferutil: 'commonjs bufferutil',
-            canvas: 'commonjs canvas'
-        });
-        return config;
-    }
+    // webpack: (config, { webpack }) => {
+    //     config.plugins.push(
+    //         new webpack.IgnorePlugin({
+    //             resourceRegExp: /^pg-native$|^cloudflare:sockets$/
+    //         })
+    //     );
+    //     config.externals.push({
+    //         'utf-8-validate': 'commonjs utf-8-validate',
+    //         bufferutil: 'commonjs bufferutil',
+    //         canvas: 'commonjs canvas'
+    //     });
+    //     return config;
+    // }
 };
 
 export default config;

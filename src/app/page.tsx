@@ -1,5 +1,6 @@
 'use client';
 import { useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Smile } from 'lucide-react';
@@ -7,19 +8,19 @@ import { useRouter } from 'next/navigation';
 import { ReactLenis } from 'lenis/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import Carousel from '@/components/carousel';
+
+const Carousel = dynamic(() => import('@/components/carousel'), {
+    ssr: false
+});
 
 const BlobShape = ({ className }: { className: string }) => (
-    <motion.svg
-        viewBox="0 0 200 200"
-        xmlns="http://www.w3.org/2000/svg"
+    <motion.div
         className={className}
         animate={{
             x: Math.random() * 100 - 50,
             y: Math.random() * 100 - 50,
             scale: Math.random() * 0.5 + 0.5,
-            rotate: Math.random() * 360,
-            borderRadius: Math.random() * 0.5 + 0.5
+            rotate: Math.random() * 360
         }}
         transition={{
             duration: 10,
@@ -28,12 +29,18 @@ const BlobShape = ({ className }: { className: string }) => (
             repeatType: 'mirror'
         }}
     >
-        <path
-            fill="currentColor"
-            d="M41.1,-69.8C53.1,-62.8,62.5,-51.1,69.8,-37.8C77.1,-24.5,82.3,-9.6,81.2,4.6C80.1,18.8,72.7,32.3,62.9,42.7C53.1,53.1,40.9,60.3,27.8,65.6C14.7,70.9,0.7,74.3,-13.1,72.9C-26.9,71.5,-40.5,65.3,-51.9,55.9C-63.3,46.5,-72.5,33.9,-76.9,19.7C-81.3,5.4,-81,-10.5,-75.7,-23.7C-70.4,-36.9,-60.1,-47.4,-48,-56.8C-35.9,-66.2,-22,-74.5,-6.9,-75.3C8.2,-76.1,29.1,-76.8,41.1,-69.8Z"
-            transform="translate(100 100)"
-        />
-    </motion.svg>
+        <svg
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full"
+        >
+            <path
+                fill="currentColor"
+                d="M41.1,-69.8C53.1,-62.8,62.5,-51.1,69.8,-37.8C77.1,-24.5,82.3,-9.6,81.2,4.6C80.1,18.8,72.7,32.3,62.9,42.7C53.1,53.1,40.9,60.3,27.8,65.6C14.7,70.9,0.7,74.3,-13.1,72.9C-26.9,71.5,-40.5,65.3,-51.9,55.9C-63.3,46.5,-72.5,33.9,-76.9,19.7C-81.3,5.4,-81,-10.5,-75.7,-23.7C-70.4,-36.9,-60.1,-47.4,-48,-56.8C-35.9,-66.2,-22,-74.5,-6.9,-75.3C8.2,-76.1,29.1,-76.8,41.1,-69.8Z"
+                transform="translate(100 100)"
+            />
+        </svg>
+    </motion.div>
 );
 
 export default function LandingPage() {
@@ -159,15 +166,17 @@ export default function LandingPage() {
                                     width={400}
                                     height={300}
                                     className="rounded-lg shadow-lg"
+                                    style={{ width: 'auto', height: 'auto' }}
                                 />
                                 <div>
                                     <h3 className="text-2xl font-semibold mb-4 text-gray-900">
                                         Intuitive Editor
                                     </h3>
                                     <p className="text-gray-700">
-                                        Our simple click to insert interface makes it
-                                        easy to create professional designs in
-                                        minutes. No design skills required!
+                                        Our simple click to insert interface
+                                        makes it easy to create professional
+                                        designs in minutes. No design skills
+                                        required!
                                     </p>
                                 </div>
                             </motion.div>
@@ -184,6 +193,7 @@ export default function LandingPage() {
                                     width={400}
                                     height={300}
                                     className="rounded-lg shadow-lg"
+                                    style={{ width: 'auto', height: 'auto' }}
                                 />
                                 <div>
                                     <h3 className="text-2xl font-semibold mb-4 text-gray-900">
@@ -209,6 +219,7 @@ export default function LandingPage() {
                                     width={400}
                                     height={300}
                                     className="rounded-lg shadow-lg"
+                                    style={{ width: 'auto', height: 'auto' }}
                                 />
                                 <div>
                                     <h3 className="text-2xl font-semibold mb-4 text-gray-900">
@@ -216,8 +227,7 @@ export default function LandingPage() {
                                     </h3>
                                     <p className="text-gray-700">
                                         Create multiple pages with ease. Add
-                                        text, images, shapes, filters, and
-                                        more.
+                                        text, images, shapes, filters, and more.
                                     </p>
                                 </div>
                             </motion.div>

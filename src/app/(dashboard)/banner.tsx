@@ -29,8 +29,8 @@ export const Banner = () => {
             {
                 name: projectName || 'Untitled project', // Use the entered project name
                 json: defaultJson,
-                height: 800,
-                width: 900
+                height: 900,
+                width: 1200
             },
             {
                 onSuccess: ({ data }) => {
