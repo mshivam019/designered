@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Plus, Trash2, Save, Minimize, ZoomIn, ZoomOut } from 'lucide-react';
 
 import { type ResponseType } from '@/features/projects/api/use-get-project';
@@ -103,6 +103,15 @@ export const Editor = ({ pageData }: EditorProps) => {
     );
     const [currentPage, setCurrentPage] = useState(0);
 
+    // Refs to avoid stale closures in callbacks
+    const pagesRef = useRef(pages);
+    pagesRef.current = pages;
+    const currentPageRef = useRef(currentPage);
+    currentPageRef.current = currentPage;
+
+    // Thumbnails for non-active pages (captured before switching away)
+    const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
+
     const { mutate: addPageMutate } = useAddPage(projectId);
     const { mutate: saveAllPages } = useSaveAllPages(projectId);
     const { mutate: deletePage } = useDeletePage(
@@ -146,91 +155,125 @@ export const Editor = ({ pageData }: EditorProps) => {
         saveCallback: noopSave
     });
 
+    // Helper: capture a thumbnail data URL from the current Konva stage.
+    const captureThumbnail = useCallback(() => {
+        const stage = stageRef.current;
+        if (!stage) return null;
+        try {
+            // Capture just the canvas area (not the grey surround)
+            const oX = (stageSize.width - pageWidth * zoom) / 2;
+            const oY = (stageSize.height - pageHeight * zoom) / 2;
+            return stage.toDataURL({
+                x: oX,
+                y: oY,
+                width: pageWidth * zoom,
+                height: pageHeight * zoom,
+                pixelRatio: 0.5
+            });
+        } catch {
+            return null;
+        }
+    }, [stageRef, stageSize, pageWidth, pageHeight, zoom]);
+
+    // Helper: snapshot current canvas into the pages array (local state only).
+    // Returns the updated pages array so callers can use it immediately.
+    const snapshotCurrentPage = useCallback(() => {
+        const json = JSON.stringify({
+            objects,
+            background
+        } satisfies PageJson);
+        const cp = currentPageRef.current;
+        setPages((prev) => {
+            const updated = [...prev];
+            updated[cp] = { ...updated[cp], json };
+            return updated;
+        });
+        // Also update the ref synchronously so subsequent reads are fresh
+        const updatedPages = [...pagesRef.current];
+        updatedPages[cp] = { ...updatedPages[cp], json };
+        pagesRef.current = updatedPages;
+
+        // Capture thumbnail for the page we're leaving
+        const thumb = captureThumbnail();
+        if (thumb) {
+            setThumbnails((prev) => ({ ...prev, [cp]: thumb }));
+        }
+
+        return updatedPages;
+    }, [objects, background, captureThumbnail]);
+
     // Switch between pages
     const switchPage = useCallback(
         (pageIndex: number) => {
-            if (!editor || pageIndex === currentPage) return;
+            if (!editor || pageIndex === currentPageRef.current) return;
 
-            // Save current page state
-            const currentJson = JSON.stringify({
-                objects,
-                background
-            } satisfies PageJson);
-            setPages((prev) => {
-                const updated = [...prev];
-                updated[currentPage] = {
-                    ...updated[currentPage],
-                    json: currentJson
-                };
-                return updated;
-            });
+            // Snapshot current page into pages array + ref
+            const updatedPages = snapshotCurrentPage();
 
             setCurrentPage(pageIndex);
 
-            // Load target page
-            const targetJson = pages[pageIndex]?.json ?? defaultJson;
+            // Load target page from the freshly-updated array
+            const targetJson = updatedPages[pageIndex]?.json ?? defaultJson;
             editor.loadJson(targetJson);
         },
-        [editor, currentPage, pages, objects, background]
+        [editor, snapshotCurrentPage]
     );
 
     // Add a new page
     const addNewPage = useCallback(() => {
         if (!editor) return;
 
-        // Save current page
-        const currentJson = JSON.stringify({
-            objects,
-            background
-        } satisfies PageJson);
-        setPages((prevPages) => {
-            const updated = [...prevPages];
-            updated[currentPage] = {
-                ...updated[currentPage],
-                json: currentJson
-            };
-            return updated;
-        });
+        // Snapshot current page so its content is preserved
+        const savedPages = snapshotCurrentPage();
 
         addPageMutate(
             {
                 projectId,
-                pageNumber: pages.length + 1,
+                pageNumber: savedPages.length + 1,
                 json: defaultJson,
                 height: 900,
                 width: 1200
             },
             {
                 onSuccess: ({ data }) => {
-                    setPages((prevPages) => [
-                        ...prevPages,
-                        {
-                            id: data.id,
-                            json: defaultJson,
-                            height: 900,
-                            width: 1200,
-                            createdAt: data.createdAt,
-                            updatedAt: data.updatedAt,
-                            projectId: data.projectId,
-                            pageNumber: data.pageNumber
-                        }
-                    ]);
+                    const newPage = {
+                        id: data.id,
+                        json: defaultJson,
+                        height: 900,
+                        width: 1200,
+                        createdAt: data.createdAt,
+                        updatedAt: data.updatedAt,
+                        projectId: data.projectId,
+                        pageNumber: data.pageNumber
+                    };
 
-                    const newIndex = pages.length;
+                    // Append the new page
+                    const latestPages = [...pagesRef.current, newPage];
+                    pagesRef.current = latestPages;
+                    setPages(latestPages);
+
+                    const newIndex = latestPages.length - 1;
                     setCurrentPage(newIndex);
+                    currentPageRef.current = newIndex;
+
+                    // Clear canvas for the new page
                     editor.loadJson(defaultJson);
+
+                    // Persist ALL pages (including current page snapshot) to server
+                    saveAllPages(
+                        latestPages.map((page, idx) => ({
+                            id: page.id,
+                            json: page.json,
+                            height: page.height,
+                            width: page.width,
+                            projectId,
+                            pageNumber: idx + 1
+                        }))
+                    );
                 }
             }
         );
-    }, [
-        editor,
-        currentPage,
-        pages,
-        objects,
-        background,
-        addPageMutate,
-        projectId
-    ]);
+    }, [editor, snapshotCurrentPage, addPageMutate, saveAllPages, projectId]);
 
     const onChangeActiveTool = useCallback(
         (tool: ActiveTool) => {
@@ -251,16 +294,22 @@ export const Editor = ({ pageData }: EditorProps) => {
     // Delete page
     const handleDeletePageAt = useCallback(
         (indexToDelete: number) => {
-            if (!editor || pages.length <= 1) return;
+            if (!editor || pagesRef.current.length <= 1) return;
 
-            const pageToDelete = pages[indexToDelete].id;
-            const updatedPages = pages.filter((_, i) => i !== indexToDelete);
+            // Snapshot current page first
+            snapshotCurrentPage();
 
-            let newActiveIndex = currentPage;
-            if (indexToDelete === currentPage) {
+            const latestPages = pagesRef.current;
+            const pageToDelete = latestPages[indexToDelete].id;
+            const updatedPages = latestPages.filter(
+                (_, i) => i !== indexToDelete
+            );
+
+            let newActiveIndex = currentPageRef.current;
+            if (indexToDelete === currentPageRef.current) {
                 newActiveIndex = indexToDelete > 0 ? indexToDelete - 1 : 0;
-            } else if (indexToDelete < currentPage) {
-                newActiveIndex = currentPage - 1;
+            } else if (indexToDelete < currentPageRef.current) {
+                newActiveIndex = currentPageRef.current - 1;
             }
 
             saveAllPages(
@@ -274,10 +323,15 @@ export const Editor = ({ pageData }: EditorProps) => {
                 }))
             );
 
+            pagesRef.current = updatedPages;
             setPages(updatedPages);
             setCurrentPage(newActiveIndex);
+            currentPageRef.current = newActiveIndex;
 
-            if (indexToDelete === currentPage) {
+            if (
+                indexToDelete === currentPageRef.current ||
+                indexToDelete === currentPage
+            ) {
                 editor.loadJson(
                     updatedPages[newActiveIndex]?.json ?? defaultJson
                 );
@@ -287,43 +341,34 @@ export const Editor = ({ pageData }: EditorProps) => {
                 param: { id: projectId, pageId: pageToDelete }
             });
         },
-        [editor, pages, currentPage, saveAllPages, deletePage, projectId]
+        [
+            editor,
+            snapshotCurrentPage,
+            saveAllPages,
+            deletePage,
+            projectId,
+            currentPage
+        ]
     );
 
     // Manual save
     const handleSave = useCallback(() => {
         if (!editor) return;
 
-        const currentJson = JSON.stringify({
-            objects,
-            background
-        } satisfies PageJson);
-        const updatedPages = [...pages];
-        updatedPages[currentPage] = {
-            ...updatedPages[currentPage],
-            json: currentJson
-        };
-        setPages(updatedPages);
+        // Snapshot current canvas into pages (uses refs, always fresh)
+        const updatedPages = snapshotCurrentPage();
 
         saveAllPages(
-            updatedPages.map((page) => ({
+            updatedPages.map((page, idx) => ({
                 id: page.id,
                 json: page.json,
                 height: page.height,
                 width: page.width,
                 projectId,
-                pageNumber: page.pageNumber
+                pageNumber: idx + 1
             }))
         );
-    }, [
-        editor,
-        objects,
-        background,
-        pages,
-        currentPage,
-        saveAllPages,
-        projectId
-    ]);
+    }, [editor, snapshotCurrentPage, saveAllPages, projectId]);
 
     return (
         <div className="h-full flex flex-col">
@@ -465,6 +510,13 @@ export const Editor = ({ pageData }: EditorProps) => {
                                                         2
                                                     }
                                                     autoZoom={autoZoom}
+                                                />
+                                            ) : thumbnails[i] ? (
+                                                <img
+                                                    src={thumbnails[i]}
+                                                    alt={`Page ${i + 1}`}
+                                                    className="w-full h-full object-fill"
+                                                    draggable={false}
                                                 />
                                             ) : (
                                                 <div className="w-full h-full bg-white flex items-center justify-center text-muted-foreground text-sm">

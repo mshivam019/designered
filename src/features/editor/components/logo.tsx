@@ -8,6 +8,7 @@ export const Logo = () => {
                 <Image
                     src="/icon.png"
                     fill
+                    sizes="32px"
                     alt="Home"
                     className="shrink-0 hover:opacity-75 transition"
                 />
