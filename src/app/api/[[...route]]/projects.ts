@@ -329,6 +329,10 @@ const app = new Hono()
                 return c.json({ error: 'Unauthorized' }, 401);
             }
 
+            if (values.length === 0) {
+                return c.json({ error: 'No pages to save' }, 400);
+            }
+
             // make sure page.id exists and is not empty or invalid
             if (values.some((page) => !page.id || !page.id.trim())) {
                 return c.json({ error: 'Invalid page id' }, 400);
@@ -339,7 +343,10 @@ const app = new Hono()
                     db
                         .update(pages)
                         .set({
-                            ...page,
+                            json: page.json,
+                            height: page.height,
+                            width: page.width,
+                            pageNumber: page.pageNumber,
                             updatedAt: new Date()
                         })
                         .where(
@@ -354,11 +361,13 @@ const app = new Hono()
                 )
             );
 
-            if (data.length === 0) {
-                return c.json({ error: 'Unauthorized' }, 401);
+            // Check that at least one page was actually updated
+            const updatedCount = data.filter((d) => d.length > 0).length;
+            if (updatedCount === 0) {
+                return c.json({ error: 'No pages were updated' }, 404);
             }
 
-            return c.json({ data: data[0] });
+            return c.json({ data: data.flat() });
         }
     )
     .delete(

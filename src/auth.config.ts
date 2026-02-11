@@ -65,6 +65,11 @@ export const authConfig = {
                     return null;
                 }
 
+                // Check if email is verified
+                if (!user.emailVerified) {
+                    return null;
+                }
+
                 return user;
             }
         }),

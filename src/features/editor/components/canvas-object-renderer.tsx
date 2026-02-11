@@ -1,6 +1,14 @@
 'use client';
 
-import { Rect, Circle, Text, Line, Image as KonvaImage } from 'react-konva';
+import {
+    Rect,
+    Circle,
+    Text,
+    Line,
+    Star,
+    Arrow,
+    RegularPolygon
+} from 'react-konva';
 import type Konva from 'konva';
 import { type CanvasObject } from '@/features/editor/types';
 import { KonvaImageNode } from './konva-image';
@@ -37,6 +45,9 @@ export const CanvasObjectRenderer = ({
     onDblClick,
     onDragMove
 }: CanvasObjectRendererProps) => {
+    const isVisible = obj.visible !== false;
+    const isLocked = obj.locked === true;
+
     const commonProps = {
         id: obj.id,
         x: obj.x,
@@ -49,7 +60,8 @@ export const CanvasObjectRenderer = ({
         rotation: obj.rotation,
         scaleX: obj.scaleX,
         scaleY: obj.scaleY,
-        draggable: obj.draggable,
+        draggable: obj.draggable && !isLocked,
+        visible: isVisible,
         onClick: () => onSelect(obj.id),
         onTap: () => onSelect(obj.id),
         onDragMove,
@@ -126,6 +138,32 @@ export const CanvasObjectRenderer = ({
                     {...commonProps}
                     points={obj.points ?? []}
                     closed={obj.closed ?? false}
+                />
+            );
+        case 'star':
+            return (
+                <Star
+                    {...commonProps}
+                    numPoints={obj.numPoints ?? 5}
+                    innerRadius={obj.innerRadius ?? 80}
+                    outerRadius={obj.outerRadius ?? 200}
+                />
+            );
+        case 'arrow':
+            return (
+                <Arrow
+                    {...commonProps}
+                    points={obj.points ?? [0, 0, 200, 0]}
+                    pointerLength={obj.pointerLength ?? 20}
+                    pointerWidth={obj.pointerWidth ?? 20}
+                />
+            );
+        case 'regularPolygon':
+            return (
+                <RegularPolygon
+                    {...commonProps}
+                    sides={obj.sides ?? 6}
+                    radius={obj.radius ?? 200}
                 />
             );
         default:

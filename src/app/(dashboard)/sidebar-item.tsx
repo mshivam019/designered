@@ -22,8 +22,9 @@ export const SidebarItem = ({
         <Link href={href} onClick={onClick}>
             <div
                 className={cn(
-                    'flex items-center px-3 py-3 rounded-xl bg-transparent hover:bg-white transition',
-                    isActive && 'bg-white'
+                    'flex items-center px-3 py-3 rounded-xl bg-transparent transition-colors',
+                    isActive && 'bg-white/10 text-white',
+                    !isActive && 'text-white/70 hover:bg-white/10 hover:text-white'
                 )}
             >
                 <Icon className="size-4 mr-2 stroke-2" />

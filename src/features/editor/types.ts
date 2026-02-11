@@ -10,7 +10,9 @@ export type CanvasObjectType =
     | 'image'
     | 'line'
     | 'polygon'
-    | 'regularPolygon';
+    | 'regularPolygon'
+    | 'star'
+    | 'arrow';
 
 export interface CanvasObject {
     id: string;
@@ -43,11 +45,61 @@ export interface CanvasObject {
     cornerRadius?: number;
     name?: string;
     closed?: boolean;
+    // Star-specific
+    numPoints?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    // Arrow-specific
+    pointerLength?: number;
+    pointerWidth?: number;
+    // Visibility / lock for layers panel
+    visible?: boolean;
+    locked?: boolean;
 }
 
 export interface PageJson {
     objects: CanvasObject[];
     background: string;
+}
+
+// --- Animation Types ---
+
+export type EasingType =
+    | 'Linear'
+    | 'EaseIn'
+    | 'EaseOut'
+    | 'EaseInOut'
+    | 'BackEaseIn'
+    | 'BackEaseOut'
+    | 'ElasticEaseIn'
+    | 'ElasticEaseOut'
+    | 'BounceEaseIn'
+    | 'BounceEaseOut';
+
+export interface AnimationKeyframe {
+    timestamp: number; // ms from animation start
+    properties: Partial<{
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+        opacity: number;
+        fill: string;
+    }>;
+    easing: EasingType;
+}
+
+export interface ObjectAnimation {
+    keyframes: AnimationKeyframe[];
+    loop: boolean;
+}
+
+export interface AnimationState {
+    isPlaying: boolean;
+    currentTime: number;
+    totalDuration: number;
+    animations: Record<string, ObjectAnimation>; // objectId -> animation
 }
 
 export const filters = [
@@ -133,7 +185,8 @@ export type ActiveTool =
     | 'filter'
     | 'settings'
     | 'remove-bg'
-    | 'templates';
+    | 'templates'
+    | 'layers';
 
 export const FILL_COLOR = 'rgba(0,0,0,1)';
 export const STROKE_COLOR = 'rgba(0,0,0,1)';
@@ -190,6 +243,57 @@ export const TEXT_OPTIONS = {
     fontFamily: FONT_FAMILY
 };
 
+export const STAR_OPTIONS = {
+    x: 300,
+    y: 300,
+    numPoints: 5,
+    innerRadius: 80,
+    outerRadius: 200,
+    fill: FILL_COLOR,
+    stroke: STROKE_COLOR,
+    strokeWidth: STROKE_WIDTH
+};
+
+export const ARROW_OPTIONS = {
+    x: 100,
+    y: 100,
+    fill: FILL_COLOR,
+    stroke: STROKE_COLOR,
+    strokeWidth: STROKE_WIDTH,
+    pointerLength: 20,
+    pointerWidth: 20
+};
+
+export const HEXAGON_OPTIONS = {
+    x: 300,
+    y: 300,
+    radius: 200,
+    sides: 6,
+    fill: FILL_COLOR,
+    stroke: STROKE_COLOR,
+    strokeWidth: STROKE_WIDTH
+};
+
+export const PENTAGON_OPTIONS = {
+    x: 300,
+    y: 300,
+    radius: 200,
+    sides: 5,
+    fill: FILL_COLOR,
+    stroke: STROKE_COLOR,
+    strokeWidth: STROKE_WIDTH
+};
+
+export const OCTAGON_OPTIONS = {
+    x: 300,
+    y: 300,
+    radius: 200,
+    sides: 8,
+    fill: FILL_COLOR,
+    stroke: STROKE_COLOR,
+    strokeWidth: STROKE_WIDTH
+};
+
 export interface EditorHookProps {
     defaultState?: string;
     defaultWidth?: number;
@@ -210,6 +314,8 @@ export type BuildEditorProps = {
     canUndo: () => boolean;
     canRedo: () => boolean;
     autoZoom: () => void;
+    zoomIn: () => void;
+    zoomOut: () => void;
     copy: () => void;
     paste: () => void;
     objects: CanvasObject[];
@@ -292,6 +398,17 @@ export interface Editor {
     addTriangle: () => void;
     addInverseTriangle: () => void;
     addDiamond: () => void;
+    addStar: () => void;
+    addArrow: () => void;
+    addHexagon: () => void;
+    addPentagon: () => void;
+    addOctagon: () => void;
+    addHeart: () => void;
+    addCross: () => void;
+    addStraightLine: () => void;
+    toggleObjectVisibility: (id: string) => void;
+    toggleObjectLock: (id: string) => void;
+    renameObject: (id: string, name: string) => void;
     stageRef: React.RefObject<Konva.Stage | null>;
     getActiveFillColor: () => string;
     getActiveStrokeColor: () => string;

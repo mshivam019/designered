@@ -14,14 +14,18 @@ type RequestType = InferRequestType<
 
 export const useSaveAllPages = (id: string) => {
     const queryClient = useQueryClient();
-    const mutation = useMutation<ResponseType, Error, RequestType>({
+    const mutation = useMutation<
+        ResponseType,
+        Error,
+        { pages: RequestType; silent?: boolean }
+    >({
         mutationKey: ['projectpages', { id }],
-        mutationFn: async (json) => {
+        mutationFn: async ({ pages }) => {
             const response = await client.api.projects[':id'].$post({
                 param: {
                     id
                 },
-                json
+                json: pages
             });
 
             if (!response.ok) {
@@ -30,14 +34,18 @@ export const useSaveAllPages = (id: string) => {
 
             return await response.json();
         },
-        onSuccess: () => {
+        onSuccess: (_data, variables) => {
             void queryClient.invalidateQueries({
                 queryKey: ['projectpages', { id }]
             });
-            toast.success('Saved all pages!');
+            if (!variables.silent) {
+                toast.success('Saved all pages!');
+            }
         },
-        onError: () => {
-            toast.error('Failed to update project');
+        onError: (_error, variables) => {
+            if (!variables.silent) {
+                toast.error('Failed to update project');
+            }
         }
     });
 

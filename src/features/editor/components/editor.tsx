@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus, Trash2, Save, Minimize, ZoomIn, ZoomOut } from 'lucide-react';
+import debounce from 'lodash.debounce';
 
 import { type ResponseType } from '@/features/projects/api/use-get-project';
 import { useAddPage } from '@/features/projects/api/use-add-page';
@@ -15,6 +16,7 @@ import {
 } from '@/features/editor/types';
 import { Navbar } from '@/features/editor/components/navbar';
 import { useEditor } from '@/features/editor/hooks/use-editor';
+import { useAnimation } from '@/features/editor/hooks/use-animation';
 import { Sidebar } from '@/features/editor/components/sidebar';
 import { Toolbar } from '@/features/editor/components/toolbar';
 
@@ -72,6 +74,18 @@ const SettingsSidebar = dynamic(() =>
     import('@/features/editor/components/settings-sidebar').then((m) => ({
         default: m.SettingsSidebar
     }))
+);
+const LayersSidebar = dynamic(() =>
+    import('@/features/editor/components/layers-sidebar').then((m) => ({
+        default: m.LayersSidebar
+    }))
+);
+const AnimationPanel = dynamic(
+    () =>
+        import('@/features/editor/components/animation-panel').then((m) => ({
+            default: m.AnimationPanel
+        })),
+    { ssr: false }
 );
 import { Button } from '@/components/ui/button';
 import { Hint } from '@/components/hint';
@@ -146,6 +160,8 @@ export const Editor = ({ pageData }: EditorProps) => {
         stageSize,
         zoom,
         autoZoom,
+        zoomIn,
+        zoomOut,
         historySave
     } = useEditor({
         defaultState: pages[0]?.json ?? defaultJson,
@@ -154,6 +170,19 @@ export const Editor = ({ pageData }: EditorProps) => {
         clearSelectionCallback: onClearSelection,
         saveCallback: noopSave
     });
+
+    const {
+        animationState,
+        addKeyframe,
+        removeKeyframe,
+        updateKeyframeEasing,
+        setTotalDuration,
+        seekTo,
+        play,
+        pause,
+        stop: stopAnimation,
+        exportVideo
+    } = useAnimation({ stageRef });
 
     // Helper: capture a thumbnail data URL from the current Konva stage.
     const captureThumbnail = useCallback(() => {
@@ -185,12 +214,22 @@ export const Editor = ({ pageData }: EditorProps) => {
         const cp = currentPageRef.current;
         setPages((prev) => {
             const updated = [...prev];
-            updated[cp] = { ...updated[cp], json };
+            updated[cp] = {
+                ...updated[cp],
+                json,
+                width: pageWidth,
+                height: pageHeight
+            };
             return updated;
         });
         // Also update the ref synchronously so subsequent reads are fresh
         const updatedPages = [...pagesRef.current];
-        updatedPages[cp] = { ...updatedPages[cp], json };
+        updatedPages[cp] = {
+            ...updatedPages[cp],
+            json,
+            width: pageWidth,
+            height: pageHeight
+        };
         pagesRef.current = updatedPages;
 
         // Capture thumbnail for the page we're leaving
@@ -200,7 +239,7 @@ export const Editor = ({ pageData }: EditorProps) => {
         }
 
         return updatedPages;
-    }, [objects, background, captureThumbnail]);
+    }, [objects, background, pageWidth, pageHeight, captureThumbnail]);
 
     // Switch between pages
     const switchPage = useCallback(
@@ -260,16 +299,17 @@ export const Editor = ({ pageData }: EditorProps) => {
                     editor.loadJson(defaultJson);
 
                     // Persist ALL pages (including current page snapshot) to server
-                    saveAllPages(
-                        latestPages.map((page, idx) => ({
+                    saveAllPages({
+                        pages: latestPages.map((page, idx) => ({
                             id: page.id,
                             json: page.json,
                             height: page.height,
                             width: page.width,
                             projectId,
                             pageNumber: idx + 1
-                        }))
-                    );
+                        })),
+                        silent: true
+                    });
                 }
             }
         );
@@ -312,16 +352,17 @@ export const Editor = ({ pageData }: EditorProps) => {
                 newActiveIndex = currentPageRef.current - 1;
             }
 
-            saveAllPages(
-                updatedPages.map((page, index) => ({
+            saveAllPages({
+                pages: updatedPages.map((page, index) => ({
                     id: page.id,
                     json: page.json,
                     height: page.height,
                     width: page.width,
                     projectId,
                     pageNumber: index + 1
-                }))
-            );
+                })),
+                silent: true
+            });
 
             pagesRef.current = updatedPages;
             setPages(updatedPages);
@@ -358,8 +399,8 @@ export const Editor = ({ pageData }: EditorProps) => {
         // Snapshot current canvas into pages (uses refs, always fresh)
         const updatedPages = snapshotCurrentPage();
 
-        saveAllPages(
-            updatedPages.map((page, idx) => ({
+        saveAllPages({
+            pages: updatedPages.map((page, idx) => ({
                 id: page.id,
                 json: page.json,
                 height: page.height,
@@ -367,8 +408,75 @@ export const Editor = ({ pageData }: EditorProps) => {
                 projectId,
                 pageNumber: idx + 1
             }))
-        );
+        });
     }, [editor, snapshotCurrentPage, saveAllPages, projectId]);
+
+    // Debounced auto-save: silently saves 2s after the last canvas change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedAutoSave = useCallback(
+        debounce(() => {
+            const latestPages = pagesRef.current;
+            const cp = currentPageRef.current;
+            const json = JSON.stringify({
+                objects: latestPages[cp]?.json
+                    ? (JSON.parse(latestPages[cp].json) as { objects: unknown })
+                          .objects
+                    : [],
+                background: latestPages[cp]?.json
+                    ? (
+                          JSON.parse(latestPages[cp].json) as {
+                              background: string;
+                          }
+                      ).background
+                    : 'white'
+            });
+
+            // Re-snapshot to ensure fresh data
+            const updatedPages = [...latestPages];
+            updatedPages[cp] = { ...updatedPages[cp], json };
+            pagesRef.current = updatedPages;
+
+            saveAllPages({
+                pages: updatedPages.map((page, idx) => ({
+                    id: page.id,
+                    json: page.json,
+                    height: page.height,
+                    width: page.width,
+                    projectId,
+                    pageNumber: idx + 1
+                })),
+                silent: true
+            });
+        }, 3000),
+        [saveAllPages, projectId]
+    );
+
+    // Trigger auto-save whenever objects or background change
+    const isInitialMount = useRef(true);
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        // Snapshot into pages ref before auto-saving
+        const json = JSON.stringify({ objects, background } satisfies PageJson);
+        const cp = currentPageRef.current;
+        const updatedPages = [...pagesRef.current];
+        updatedPages[cp] = {
+            ...updatedPages[cp],
+            json,
+            width: pageWidth,
+            height: pageHeight
+        };
+        pagesRef.current = updatedPages;
+        setPages(updatedPages);
+
+        debouncedAutoSave();
+
+        return () => {
+            debouncedAutoSave.cancel();
+        };
+    }, [objects, background, pageWidth, pageHeight, debouncedAutoSave]);
 
     return (
         <div className="h-full flex flex-col">
@@ -439,6 +547,15 @@ export const Editor = ({ pageData }: EditorProps) => {
                     activeTool={activeTool}
                     onChangeActiveTool={onChangeActiveTool}
                 />
+                <LayersSidebar
+                    editor={editor}
+                    objects={objects}
+                    setObjects={setObjects}
+                    selectedIds={selectedIds}
+                    setSelectedIds={setSelectedIds}
+                    activeTool={activeTool}
+                    onChangeActiveTool={onChangeActiveTool}
+                />
                 <main className="bg-muted flex-1 overflow-hidden relative flex flex-col">
                     {/* Floating toolbar */}
                     <Toolbar
@@ -448,119 +565,119 @@ export const Editor = ({ pageData }: EditorProps) => {
                         key={`${editor?.selectedObjects[0]?.type ?? 'none'}-${editor?.selectedObjects.length ?? 0}`}
                     />
 
-                    {/* Canvas area */}
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="flex flex-col items-center gap-4 py-4">
-                            {/* Page slots */}
-                            {pages.map((page, i) => {
-                                return (
-                                    <div
-                                        key={page.id || `page-${i}`}
-                                        className="group w-full"
-                                    >
-                                        <div
-                                            className={`relative bg-white rounded-sm overflow-hidden transition-shadow duration-200 mx-auto ${
-                                                i === currentPage
-                                                    ? 'shadow-[0_2px_12px_rgba(0,0,0,0.12)]'
-                                                    : 'shadow-[0_1px_6px_rgba(0,0,0,0.08)] cursor-pointer hover:shadow-[0_2px_10px_rgba(0,0,0,0.12)]'
-                                            }`}
-                                            style={{
-                                                width: `min(1100px, calc(100% - 40px))`,
-                                                aspectRatio: `${page.width} / ${page.height}`
-                                            }}
-                                            onClick={() =>
-                                                i !== currentPage &&
-                                                switchPage(i)
-                                            }
-                                        >
-                                            {i === currentPage ? (
-                                                <PageCanvas
-                                                    objects={objects}
-                                                    setObjects={setObjects}
-                                                    selectedIds={selectedIds}
-                                                    setSelectedIds={
-                                                        setSelectedIds
-                                                    }
-                                                    background={background}
-                                                    pageWidth={pageWidth}
-                                                    pageHeight={pageHeight}
-                                                    stageRef={stageRef}
-                                                    containerRef={containerRef}
-                                                    stageSize={stageSize}
-                                                    zoom={zoom}
-                                                    isDrawingMode={
-                                                        isDrawingMode
-                                                    }
-                                                    drawingPoints={
-                                                        drawingPoints
-                                                    }
-                                                    setDrawingPoints={
-                                                        setDrawingPoints
-                                                    }
-                                                    setIsDrawingMode={
-                                                        setIsDrawingMode
-                                                    }
-                                                    save={historySave}
-                                                    strokeColor={
-                                                        editor?.getActiveStrokeColor() ??
-                                                        'rgba(0,0,0,1)'
-                                                    }
-                                                    strokeWidth={
-                                                        editor?.getActiveStrokeWidth() ??
-                                                        2
-                                                    }
-                                                    autoZoom={autoZoom}
-                                                />
-                                            ) : thumbnails[i] ? (
-                                                <img
-                                                    src={thumbnails[i]}
-                                                    alt={`Page ${i + 1}`}
-                                                    className="w-full h-full object-fill"
-                                                    draggable={false}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full bg-white flex items-center justify-center text-muted-foreground text-sm">
-                                                    Page {i + 1}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Page label + delete */}
-                                        <div className="flex items-center justify-center gap-2 mt-2.5">
-                                            <span className="text-xs text-muted-foreground font-medium select-none">
-                                                {i + 1}
-                                            </span>
-                                            {pages.length > 1 && (
-                                                <button
-                                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeletePageAt(i);
-                                                    }}
-                                                >
-                                                    <Trash2 className="size-3" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-
-                            {/* Add page button */}
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-1.5 text-muted-foreground hover:text-foreground mb-4"
-                                onClick={addNewPage}
-                            >
-                                <Plus className="size-4" />
-                                Add page
-                            </Button>
-                        </div>
+                    {/* Canvas area — fills entire viewport */}
+                    <div className="flex-1 relative">
+                        <PageCanvas
+                            objects={objects}
+                            setObjects={setObjects}
+                            selectedIds={selectedIds}
+                            setSelectedIds={setSelectedIds}
+                            background={background}
+                            pageWidth={pageWidth}
+                            pageHeight={pageHeight}
+                            stageRef={stageRef}
+                            containerRef={containerRef}
+                            stageSize={stageSize}
+                            zoom={zoom}
+                            isDrawingMode={isDrawingMode}
+                            drawingPoints={drawingPoints}
+                            setDrawingPoints={setDrawingPoints}
+                            setIsDrawingMode={setIsDrawingMode}
+                            save={historySave}
+                            strokeColor={
+                                editor?.getActiveStrokeColor() ??
+                                'rgba(0,0,0,1)'
+                            }
+                            strokeWidth={editor?.getActiveStrokeWidth() ?? 2}
+                            autoZoom={autoZoom}
+                            onCopy={() => editor?.onCopy()}
+                            onPaste={() => editor?.onPaste()}
+                        />
                     </div>
 
+                    {/* Page thumbnails strip */}
+                    <div className="flex items-center gap-2 px-3 py-2 border-t bg-white/80 backdrop-blur-sm overflow-x-auto shrink-0">
+                        {pages.map((page, i) => (
+                            <div
+                                key={page.id || `page-${i}`}
+                                className="group relative shrink-0"
+                            >
+                                <button
+                                    className={`relative rounded-md overflow-hidden border-2 transition-all duration-150 ${
+                                        i === currentPage
+                                            ? 'border-blue-500 shadow-sm'
+                                            : 'border-transparent hover:border-muted-foreground/30'
+                                    }`}
+                                    style={{
+                                        width: 80,
+                                        aspectRatio: `${page.width} / ${page.height}`
+                                    }}
+                                    onClick={() =>
+                                        i !== currentPage && switchPage(i)
+                                    }
+                                >
+                                    {thumbnails[i] ? (
+                                        <img
+                                            src={thumbnails[i]}
+                                            alt={`Page ${i + 1}`}
+                                            className="w-full h-full object-fill"
+                                            draggable={false}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-white flex items-center justify-center text-muted-foreground text-[9px]">
+                                            {i + 1}
+                                        </div>
+                                    )}
+                                </button>
+                                {/* Page number */}
+                                <span className="block text-center text-[10px] text-muted-foreground mt-0.5 select-none">
+                                    {i + 1}
+                                </span>
+                                {/* Delete button */}
+                                {pages.length > 1 && (
+                                    <button
+                                        className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full shadow-sm border p-0.5"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeletePageAt(i);
+                                        }}
+                                    >
+                                        <Trash2 className="size-2.5 text-destructive" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {/* Add page */}
+                        <button
+                            className="shrink-0 flex items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 transition-colors"
+                            style={{
+                                width: 80,
+                                aspectRatio: `${pages[0]?.width ?? 1200} / ${pages[0]?.height ?? 900}`
+                            }}
+                            onClick={addNewPage}
+                        >
+                            <Plus className="size-4 text-muted-foreground" />
+                        </button>
+                    </div>
+
+                    {/* Animation timeline panel */}
+                    <AnimationPanel
+                        animationState={animationState}
+                        selectedIds={selectedIds}
+                        objects={objects}
+                        onPlay={play}
+                        onPause={pause}
+                        onStop={stopAnimation}
+                        onSeek={seekTo}
+                        onAddKeyframe={addKeyframe}
+                        onRemoveKeyframe={removeKeyframe}
+                        onUpdateKeyframeEasing={updateKeyframeEasing}
+                        onSetDuration={setTotalDuration}
+                        onExportVideo={exportVideo}
+                    />
+
                     {/* Floating bottom-right controls */}
-                    <div className="absolute bottom-3 right-3 z-50 flex items-center gap-0.5 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border px-1 py-0.5">
+                    <div className="absolute bottom-14 right-3 z-50 flex items-center gap-0.5 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border px-1 py-0.5">
                         <Hint label="Save" side="top" sideOffset={10}>
                             <Button
                                 size="icon"

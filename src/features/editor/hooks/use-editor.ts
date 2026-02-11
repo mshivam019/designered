@@ -19,7 +19,12 @@ import {
     TEXT_OPTIONS,
     FONT_FAMILY,
     FONT_WEIGHT,
-    FONT_SIZE
+    FONT_SIZE,
+    STAR_OPTIONS,
+    ARROW_OPTIONS,
+    HEXAGON_OPTIONS,
+    PENTAGON_OPTIONS,
+    OCTAGON_OPTIONS
 } from '@/features/editor/types';
 import { useHistory } from '@/features/editor/hooks/use-history';
 import { downloadFile } from '@/features/editor/utils';
@@ -35,6 +40,8 @@ const buildEditor = ({
     canRedo,
     canUndo,
     autoZoom,
+    zoomIn,
+    zoomOut,
     copy,
     paste,
     objects,
@@ -147,20 +154,8 @@ const buildEditor = ({
         getWorkspace,
         stageRef,
         selectedObjects,
-        zoomIn: () => {
-            const stage = stageRef.current;
-            if (!stage) return;
-            const newScale = Math.min(stage.scaleX() + 0.05, 3);
-            stage.scale({ x: newScale, y: newScale });
-            stage.batchDraw();
-        },
-        zoomOut: () => {
-            const stage = stageRef.current;
-            if (!stage) return;
-            const newScale = Math.max(stage.scaleX() - 0.05, 0.1);
-            stage.scale({ x: newScale, y: newScale });
-            stage.batchDraw();
-        },
+        zoomIn,
+        zoomOut,
         changeSize: (value: { width: number; height: number }) => {
             setPageWidth(value.width);
             setPageHeight(value.height);
@@ -433,6 +428,209 @@ const buildEditor = ({
                 draggable: true
             });
         },
+        addStar: () => {
+            addObject({
+                type: 'star',
+                ...STAR_OPTIONS,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addArrow: () => {
+            addObject({
+                type: 'arrow',
+                ...ARROW_OPTIONS,
+                points: [0, 0, 300, 0],
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addHexagon: () => {
+            addObject({
+                type: 'regularPolygon',
+                ...HEXAGON_OPTIONS,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addPentagon: () => {
+            addObject({
+                type: 'regularPolygon',
+                ...PENTAGON_OPTIONS,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addOctagon: () => {
+            addObject({
+                type: 'regularPolygon',
+                ...OCTAGON_OPTIONS,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addHeart: () => {
+            // Heart shape as a closed polyline
+            const w = 400;
+            const h = 400;
+            const points = [
+                w / 2,
+                h * 0.35,
+                w * 0.15,
+                0,
+                0,
+                h * 0.35,
+                w / 2,
+                h,
+                w,
+                h * 0.35,
+                w * 0.85,
+                0,
+                w / 2,
+                h * 0.35
+            ];
+            addObject({
+                type: 'line',
+                x: 100,
+                y: 100,
+                width: w,
+                height: h,
+                points,
+                closed: true,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addCross: () => {
+            // Plus/cross shape
+            const s = 400;
+            const t = s / 3;
+            const points = [
+                t,
+                0,
+                2 * t,
+                0,
+                2 * t,
+                t,
+                s,
+                t,
+                s,
+                2 * t,
+                2 * t,
+                2 * t,
+                2 * t,
+                s,
+                t,
+                s,
+                t,
+                2 * t,
+                0,
+                2 * t,
+                0,
+                t,
+                t,
+                t
+            ];
+            addObject({
+                type: 'line',
+                x: 100,
+                y: 100,
+                width: s,
+                height: s,
+                points,
+                closed: true,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        addStraightLine: () => {
+            addObject({
+                type: 'line',
+                x: 100,
+                y: 300,
+                points: [0, 0, 400, 0],
+                closed: false,
+                fill: 'transparent',
+                stroke: strokeColor,
+                strokeWidth: strokeWidth > 0 ? strokeWidth : 3,
+                dash: strokeDashArray.length > 0 ? strokeDashArray : undefined,
+                opacity: 1,
+                rotation: 0,
+                scaleX: 1,
+                scaleY: 1,
+                draggable: true
+            });
+        },
+        toggleObjectVisibility: (id: string) => {
+            setObjects((prev) =>
+                prev.map((o) =>
+                    o.id === id
+                        ? { ...o, visible: o.visible === false ? true : false }
+                        : o
+                )
+            );
+            save();
+        },
+        toggleObjectLock: (id: string) => {
+            setObjects((prev) =>
+                prev.map((o) => (o.id === id ? { ...o, locked: !o.locked } : o))
+            );
+            save();
+        },
+        renameObject: (id: string, name: string) => {
+            setObjects((prev) =>
+                prev.map((o) => (o.id === id ? { ...o, name } : o))
+            );
+        },
         getActiveFillColor: () =>
             (selectedObjects[0]?.fill as string) ?? fillColor,
         getActiveStrokeColor: () => selectedObjects[0]?.stroke ?? strokeColor,
@@ -505,7 +703,7 @@ export const useEditor = ({
         save
     });
 
-    const { autoZoom, stageSize, zoom } = useAutoResize({
+    const { autoZoom, stageSize, zoom, zoomIn, zoomOut } = useAutoResize({
         containerRef,
         pageWidth,
         pageHeight
@@ -541,6 +739,8 @@ export const useEditor = ({
             canUndo,
             canRedo,
             autoZoom,
+            zoomIn,
+            zoomOut,
             copy,
             paste,
             objects,
@@ -575,6 +775,8 @@ export const useEditor = ({
         redo,
         save,
         autoZoom,
+        zoomIn,
+        zoomOut,
         copy,
         paste,
         selectedIds,
@@ -608,6 +810,8 @@ export const useEditor = ({
         stageSize,
         zoom,
         autoZoom,
+        zoomIn,
+        zoomOut,
         historySave: save
     };
 };

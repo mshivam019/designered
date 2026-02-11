@@ -14,7 +14,11 @@ export const useGetImages = () => {
 
             const { data } = await response.json();
             return data;
-        }
+        },
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false
     });
 
     return query;

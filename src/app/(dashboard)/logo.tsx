@@ -16,7 +16,7 @@ export const Logo = () => {
                 <div className="size-8 relative">
                     <Palette className="mr-2 h-8 w-8 text-blue-500" />
                 </div>
-                <h1 className={cn(font.className, 'text-xl font-bold')}>
+                <h1 className={cn(font.className, 'text-xl font-bold text-white')}>
                     Designered
                 </h1>
             </div>

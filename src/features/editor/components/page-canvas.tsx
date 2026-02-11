@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 
 import { type CanvasObject } from '@/features/editor/types';
 import { CanvasObjectRenderer } from './canvas-object-renderer';
+import { CanvasContextMenu } from './canvas-context-menu';
 import { useSnapping } from '@/features/editor/hooks/use-snapping';
 
 interface PageCanvasProps {
@@ -30,6 +31,8 @@ interface PageCanvasProps {
     strokeColor: string;
     strokeWidth: number;
     autoZoom: () => void;
+    onCopy?: () => void;
+    onPaste?: () => void;
 }
 
 export const PageCanvas = ({
@@ -51,13 +54,27 @@ export const PageCanvas = ({
     save,
     strokeColor,
     strokeWidth,
-    autoZoom
+    autoZoom,
+    onCopy,
+    onPaste
 }: PageCanvasProps) => {
     const transformerRef = useRef<Konva.Transformer>(null);
     const isDrawing = useRef(false);
 
     // Inline text editing state
     const [editingTextId, setEditingTextId] = useState<string | null>(null);
+
+    // Context menu state
+    const [contextMenu, setContextMenu] = useState<{
+        visible: boolean;
+        x: number;
+        y: number;
+        objectId: string | null;
+    }>({ visible: false, x: 0, y: 0, objectId: null });
+
+    // Long-press timer for mobile
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
     // Snapping
     const {
@@ -100,8 +117,16 @@ export const PageCanvas = ({
         tr.getLayer()?.batchDraw();
     }, [selectedIds, stageRef, objects]);
 
+    const handleCloseContextMenu = useCallback(() => {
+        setContextMenu({ visible: false, x: 0, y: 0, objectId: null });
+    }, []);
+
     const handleStageClick = useCallback(
         (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+            // Close context menu if open
+            if (contextMenu.visible) {
+                handleCloseContextMenu();
+            }
             if (isDrawingMode) return;
             // Click on empty space → deselect
             if (e.target === e.target.getStage()) {
@@ -116,7 +141,12 @@ export const PageCanvas = ({
                 return;
             }
         },
-        [setSelectedIds, isDrawingMode]
+        [
+            setSelectedIds,
+            isDrawingMode,
+            contextMenu.visible,
+            handleCloseContextMenu
+        ]
     );
 
     const handleSelect = useCallback(
@@ -286,6 +316,171 @@ export const PageCanvas = ({
         save
     ]);
 
+    // --- Context Menu Handlers ---
+
+    const findObjectIdFromTarget = useCallback(
+        (target: Konva.Node): string | null => {
+            let node: Konva.Node | null = target;
+            while (node) {
+                const id = node.id();
+                if (id && objects.some((o) => o.id === id)) {
+                    return id;
+                }
+                node = node.parent;
+            }
+            return null;
+        },
+        [objects]
+    );
+
+    const handleContextMenu = useCallback(
+        (e: Konva.KonvaEventObject<PointerEvent | MouseEvent>) => {
+            e.evt.preventDefault();
+            if (isDrawingMode) return;
+
+            const objectId = findObjectIdFromTarget(e.target);
+            if (objectId) {
+                setSelectedIds([objectId]);
+            }
+
+            setContextMenu({
+                visible: true,
+                x: e.evt.clientX,
+                y: e.evt.clientY,
+                objectId
+            });
+        },
+        [isDrawingMode, findObjectIdFromTarget, setSelectedIds]
+    );
+
+    // Long-press handlers for mobile
+    const handleTouchStartForContextMenu = useCallback(
+        (e: Konva.KonvaEventObject<TouchEvent>) => {
+            if (isDrawingMode) return;
+            const touch = e.evt.touches[0];
+            if (!touch) return;
+
+            touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+
+            longPressTimer.current = setTimeout(() => {
+                const objectId = findObjectIdFromTarget(e.target);
+                if (objectId) {
+                    setSelectedIds([objectId]);
+                }
+                setContextMenu({
+                    visible: true,
+                    x: touchStartPos.current?.x ?? 0,
+                    y: touchStartPos.current?.y ?? 0,
+                    objectId
+                });
+            }, 500);
+        },
+        [isDrawingMode, findObjectIdFromTarget, setSelectedIds]
+    );
+
+    const handleTouchMoveForContextMenu = useCallback(
+        (e: Konva.KonvaEventObject<TouchEvent>) => {
+            if (!longPressTimer.current || !touchStartPos.current) return;
+            const touch = e.evt.touches[0];
+            if (!touch) return;
+
+            const dx = touch.clientX - touchStartPos.current.x;
+            const dy = touch.clientY - touchStartPos.current.y;
+            if (Math.sqrt(dx * dx + dy * dy) > 10) {
+                clearTimeout(longPressTimer.current);
+                longPressTimer.current = null;
+            }
+        },
+        []
+    );
+
+    const handleTouchEndForContextMenu = useCallback(() => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    }, []);
+
+    // Context menu action handlers
+    const handleDuplicate = useCallback(() => {
+        const objectId = contextMenu.objectId;
+        if (!objectId) return;
+        const obj = objects.find((o) => o.id === objectId);
+        if (!obj) return;
+
+        const newObj: CanvasObject = {
+            ...obj,
+            id: uuid(),
+            x: obj.x + 20,
+            y: obj.y + 20
+        };
+        setObjects((prev) => [...prev, newObj]);
+        setSelectedIds([newObj.id]);
+        save();
+    }, [contextMenu.objectId, objects, setObjects, setSelectedIds, save]);
+
+    const handleDeleteFromMenu = useCallback(() => {
+        const objectId = contextMenu.objectId;
+        if (!objectId) return;
+        setObjects((prev) => prev.filter((o) => o.id !== objectId));
+        setSelectedIds([]);
+        save();
+    }, [contextMenu.objectId, setObjects, setSelectedIds, save]);
+
+    const handleBringForward = useCallback(() => {
+        const objectId = contextMenu.objectId;
+        if (!objectId) return;
+        setObjects((prev) => {
+            const idx = prev.findIndex((o) => o.id === objectId);
+            if (idx < 0 || idx >= prev.length - 1) return prev;
+            const next = [...prev];
+            [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+            return next;
+        });
+        save();
+    }, [contextMenu.objectId, setObjects, save]);
+
+    const handleSendBackward = useCallback(() => {
+        const objectId = contextMenu.objectId;
+        if (!objectId) return;
+        setObjects((prev) => {
+            const idx = prev.findIndex((o) => o.id === objectId);
+            if (idx <= 0) return prev;
+            const next = [...prev];
+            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+            return next;
+        });
+        save();
+    }, [contextMenu.objectId, setObjects, save]);
+
+    const handleToggleLock = useCallback(
+        (id: string) => {
+            setObjects((prev) =>
+                prev.map((o) => (o.id === id ? { ...o, locked: !o.locked } : o))
+            );
+        },
+        [setObjects]
+    );
+
+    const handleToggleVisibility = useCallback(
+        (id: string) => {
+            setObjects((prev) =>
+                prev.map((o) =>
+                    o.id === id ? { ...o, visible: !(o.visible ?? true) } : o
+                )
+            );
+        },
+        [setObjects]
+    );
+
+    const handleCopyFromMenu = useCallback(() => {
+        if (onCopy) onCopy();
+    }, [onCopy]);
+
+    const handlePasteFromMenu = useCallback(() => {
+        if (onPaste) onPaste();
+    }, [onPaste]);
+
     // Center the workspace in the stage
     const offsetX = (stageSize.width - pageWidth * zoom) / 2;
     const offsetY = (stageSize.height - pageHeight * zoom) / 2;
@@ -298,6 +493,10 @@ export const PageCanvas = ({
     // Current snap guides
     const currentGuides = guidesRef.current;
 
+    const contextMenuObject = contextMenu.objectId
+        ? (objects.find((o) => o.id === contextMenu.objectId) ?? null)
+        : null;
+
     return (
         <div ref={containerRef} className="absolute inset-0">
             <Stage
@@ -309,9 +508,19 @@ export const PageCanvas = ({
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onTouchStart={handleMouseDown}
-                onTouchMove={handleMouseMove}
-                onTouchEnd={handleMouseUp}
+                onTouchStart={(e) => {
+                    handleTouchStartForContextMenu(e);
+                    handleMouseDown(e);
+                }}
+                onTouchMove={(e) => {
+                    handleTouchMoveForContextMenu(e);
+                    handleMouseMove(e);
+                }}
+                onTouchEnd={() => {
+                    handleTouchEndForContextMenu();
+                    handleMouseUp();
+                }}
+                onContextMenu={handleContextMenu}
                 style={{ cursor: isDrawingMode ? 'crosshair' : 'default' }}
             >
                 <Layer
@@ -431,6 +640,24 @@ export const PageCanvas = ({
                     )}
                 </Layer>
             </Stage>
+
+            {/* Context Menu Overlay */}
+            <CanvasContextMenu
+                visible={contextMenu.visible}
+                x={contextMenu.x}
+                y={contextMenu.y}
+                targetObjectId={contextMenu.objectId}
+                targetObject={contextMenuObject}
+                onCopy={handleCopyFromMenu}
+                onPaste={handlePasteFromMenu}
+                onDuplicate={handleDuplicate}
+                onBringForward={handleBringForward}
+                onSendBackward={handleSendBackward}
+                onToggleLock={handleToggleLock}
+                onToggleVisibility={handleToggleVisibility}
+                onDelete={handleDeleteFromMenu}
+                onClose={handleCloseContextMenu}
+            />
         </div>
     );
 };

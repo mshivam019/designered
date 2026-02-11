@@ -3,7 +3,15 @@ import {
     Diamond as FaDiamond,
     Square as FaSquareFull,
     SquareDot as FaSquare,
-    Circle as FaCircle
+    Circle as FaCircle,
+    Star,
+    ArrowRight,
+    Hexagon,
+    Pentagon,
+    Octagon,
+    Heart,
+    Plus,
+    Minus
 } from 'lucide-react';
 
 import { type ActiveTool, type Editor } from '@/features/editor/types';
@@ -41,32 +49,113 @@ export const ShapeSidebar = ({
                 description="Add shapes to your canvas"
             />
             <ScrollArea>
-                <div className="grid grid-cols-3 gap-4 p-4">
-                    <ShapeTool
-                        onClick={() => editor?.addCircle()}
-                        icon={FaCircle}
-                    />
-                    <ShapeTool
-                        onClick={() => editor?.addSoftRectangle()}
-                        icon={FaSquare}
-                    />
-                    <ShapeTool
-                        onClick={() => editor?.addRectangle()}
-                        icon={FaSquareFull}
-                    />
-                    <ShapeTool
-                        onClick={() => editor?.addTriangle()}
-                        icon={IoTriangle}
-                    />
-                    <ShapeTool
-                        onClick={() => editor?.addInverseTriangle()}
-                        icon={IoTriangle}
-                        iconClassName="rotate-180"
-                    />
-                    <ShapeTool
-                        onClick={() => editor?.addDiamond()}
-                        icon={FaDiamond}
-                    />
+                <div className="p-4 space-y-5">
+                    {/* Basic Shapes */}
+                    <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                            Basic
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                            <ShapeTool
+                                onClick={() => editor?.addRectangle()}
+                                icon={FaSquareFull}
+                                label="Rectangle"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addSoftRectangle()}
+                                icon={FaSquare}
+                                label="Rounded"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addCircle()}
+                                icon={FaCircle}
+                                label="Circle"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Polygons */}
+                    <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                            Polygons
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                            <ShapeTool
+                                onClick={() => editor?.addTriangle()}
+                                icon={IoTriangle}
+                                label="Triangle"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addInverseTriangle()}
+                                icon={IoTriangle}
+                                iconClassName="rotate-180"
+                                label="Inv Triangle"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addDiamond()}
+                                icon={FaDiamond}
+                                label="Diamond"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addPentagon()}
+                                icon={Pentagon}
+                                label="Pentagon"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addHexagon()}
+                                icon={Hexagon}
+                                label="Hexagon"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addOctagon()}
+                                icon={Octagon}
+                                label="Octagon"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Special */}
+                    <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                            Special
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                            <ShapeTool
+                                onClick={() => editor?.addStar()}
+                                icon={Star}
+                                label="Star"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addHeart()}
+                                icon={Heart}
+                                label="Heart"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addCross()}
+                                icon={Plus}
+                                label="Cross"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Lines & Arrows */}
+                    <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+                            Lines & Arrows
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                            <ShapeTool
+                                onClick={() => editor?.addStraightLine()}
+                                icon={Minus}
+                                label="Line"
+                            />
+                            <ShapeTool
+                                onClick={() => editor?.addArrow()}
+                                icon={ArrowRight}
+                                label="Arrow"
+                            />
+                        </div>
+                    </div>
                 </div>
             </ScrollArea>
             <ToolSidebarClose onClick={onClose} />

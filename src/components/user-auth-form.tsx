@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Icons } from '@/components/icons';
 import { useSignUp } from '@/features/auth/hooks/use-sign-up';
+import { OTPVerification } from '@/components/otp-verification';
 import { usePathname } from 'next/navigation';
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
@@ -32,16 +33,21 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [isGoogleLoading, setIsGoogleLoading] =
         React.useState<boolean>(false);
+    const [showOTP, setShowOTP] = React.useState(false);
+    const [signupData, setSignupData] = React.useState<{
+        email: string;
+        password: string;
+    } | null>(null);
 
     async function onSubmit(data: FormData) {
         setIsLoading(true);
-        if(pathname === '/login') {
+        if (pathname === '/login') {
             signIn('credentials', {
                 email: data.email,
                 password: data.password,
                 callbackUrl: '/'
             });
-        }else{
+        } else {
             mutation.mutate(
                 {
                     email: data.email,
@@ -49,18 +55,61 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                     password: data.password
                 },
                 {
-                    onSuccess: () => {
-                        signIn('credentials', {
-                            email: data.email,
-                            password: data.password,
-                            callbackUrl: '/'
-                        });
+                    onSuccess: (result) => {
+                        if (
+                            result &&
+                            typeof result === 'object' &&
+                            'requiresVerification' in result &&
+                            result.requiresVerification
+                        ) {
+                            setSignupData({
+                                email: data.email,
+                                password: data.password
+                            });
+                            setShowOTP(true);
+                        } else {
+                            signIn('credentials', {
+                                email: data.email,
+                                password: data.password,
+                                callbackUrl: '/'
+                            });
+                        }
+                    },
+                    onError: () => {
+                        setIsLoading(false);
                     }
                 }
             );
         }
 
         setIsLoading(false);
+    }
+
+    const handleVerified = React.useCallback(() => {
+        if (signupData) {
+            signIn('credentials', {
+                email: signupData.email,
+                password: signupData.password,
+                callbackUrl: '/'
+            });
+        }
+    }, [signupData]);
+
+    const handleCancelOTP = React.useCallback(() => {
+        setShowOTP(false);
+        setSignupData(null);
+    }, []);
+
+    if (showOTP && signupData) {
+        return (
+            <div className={cn('grid gap-6', className)} {...props}>
+                <OTPVerification
+                    email={signupData.email}
+                    onVerified={handleVerified}
+                    onCancel={handleCancelOTP}
+                />
+            </div>
+        );
     }
 
     return (

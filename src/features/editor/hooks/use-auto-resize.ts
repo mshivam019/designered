@@ -32,5 +32,13 @@ export const useAutoResize = ({
         setZoom(newZoom);
     }, [containerRef, pageWidth, pageHeight]);
 
-    return { autoZoom, stageSize, zoom };
+    const zoomIn = useCallback(() => {
+        setZoom((prev) => Math.min(prev + 0.1, 5));
+    }, []);
+
+    const zoomOut = useCallback(() => {
+        setZoom((prev) => Math.max(prev - 0.1, 0.1));
+    }, []);
+
+    return { autoZoom, stageSize, zoom, zoomIn, zoomOut };
 };

@@ -3,6 +3,7 @@
 import {
     LayoutTemplate,
     ImageIcon,
+    Layers,
     Pencil,
     Settings,
     Shapes,
@@ -19,7 +20,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ activeTool, onChangeActiveTool }: SidebarProps) => {
     return (
-        <aside className="bg-white flex flex-col w-[100px] h-full border-r overflow-y-auto">
+        <aside className="bg-[#1e1e2e] flex flex-col w-[72px] h-full overflow-y-auto">
             <ul className="flex flex-col">
                 <SidebarItem
                     icon={ImageIcon}
@@ -44,6 +45,12 @@ export const Sidebar = ({ activeTool, onChangeActiveTool }: SidebarProps) => {
                     label="Draw"
                     isActive={activeTool === 'draw'}
                     onClick={() => onChangeActiveTool('draw')}
+                />
+                <SidebarItem
+                    icon={Layers}
+                    label="Layers"
+                    isActive={activeTool === 'layers'}
+                    onClick={() => onChangeActiveTool('layers')}
                 />
                 <SidebarItem
                     icon={Settings}

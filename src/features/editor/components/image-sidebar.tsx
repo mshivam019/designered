@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { AlertTriangle, Loader } from 'lucide-react';
+import { AlertTriangle, Loader, RefreshCw } from 'lucide-react';
 import { type ActiveTool, type Editor } from '@/features/editor/types';
 import { ToolSidebarClose } from '@/features/editor/components/tool-sidebar-close';
 import { ToolSidebarHeader } from '@/features/editor/components/tool-sidebar-header';
@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { UploadButton } from '@/lib/uploadthing';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Hint } from '@/components/hint';
 
 interface UploadedImage {
     url: string;
@@ -46,7 +48,7 @@ export const ImageSidebar = ({
     activeTool,
     onChangeActiveTool
 }: ImageSidebarProps) => {
-    const { data, isLoading, isError } = useGetImages();
+    const { data, isLoading, isError, refetch, isFetching } = useGetImages();
     const [uploadedImages, setUploadedImages] =
         useState<UploadedImage[]>(loadCachedImages);
     const [isUploading, setIsUploading] = useState(false);
@@ -167,9 +169,27 @@ export const ImageSidebar = ({
             )}
             <ScrollArea className="flex-1">
                 <div className="p-4">
-                    <p className="text-xs text-muted-foreground mb-2">
-                        Stock Images
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground">
+                            Stock Images
+                        </p>
+                        <Hint label="Refresh images" side="left">
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={() => refetch()}
+                                disabled={isFetching}
+                            >
+                                <RefreshCw
+                                    className={cn(
+                                        'size-3',
+                                        isFetching && 'animate-spin'
+                                    )}
+                                />
+                            </Button>
+                        </Hint>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         {data?.map((image) => (
                             <button
