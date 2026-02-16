@@ -486,6 +486,7 @@ export const Editor = ({ pageData }: EditorProps) => {
                 activeTool={activeTool}
                 onChangeActiveTool={onChangeActiveTool}
                 onSave={handleSave}
+                onExportVideo={exportVideo}
             />
             <div className="absolute h-[calc(100%-68px)] w-full top-[68px] flex">
                 <Sidebar

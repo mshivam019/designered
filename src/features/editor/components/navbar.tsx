@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useCallback } from 'react';
 import { useFilePicker } from 'use-file-picker';
 import { useMutationState } from '@tanstack/react-query';
 import {
@@ -12,7 +13,8 @@ import {
     File,
     Save,
     Cloud as BsCloudCheck,
-    CloudOff as BsCloudSlash
+    CloudOff as BsCloudSlash,
+    Film
 } from 'lucide-react';
 
 import { UserButton } from '@/features/auth/components/user-button';
@@ -37,6 +39,7 @@ interface NavbarProps {
     activeTool: ActiveTool;
     onChangeActiveTool: (tool: ActiveTool) => void;
     onSave: () => void;
+    onExportVideo?: () => Promise<Blob | null>;
 }
 
 export const Navbar = ({
@@ -44,8 +47,29 @@ export const Navbar = ({
     editor,
     activeTool,
     onChangeActiveTool,
-    onSave
+    onSave,
+    onExportVideo
 }: NavbarProps) => {
+    const [isExportingVideo, setIsExportingVideo] = useState(false);
+
+    const handleExportVideo = useCallback(async () => {
+        if (!onExportVideo) return;
+        setIsExportingVideo(true);
+        try {
+            const blob = await onExportVideo();
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'animation.webm';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        } finally {
+            setIsExportingVideo(false);
+        }
+    }, [onExportVideo]);
+
     const data = useMutationState({
         filters: {
             mutationKey: ['projectpages', { id }],
@@ -230,6 +254,25 @@ export const Navbar = ({
                                     </p>
                                 </div>
                             </DropdownMenuItem>
+                            {onExportVideo && (
+                                <DropdownMenuItem
+                                    className="flex items-center gap-x-2"
+                                    onClick={handleExportVideo}
+                                    disabled={isExportingVideo}
+                                >
+                                    {isExportingVideo ? (
+                                        <Loader className="size-8 animate-spin" />
+                                    ) : (
+                                        <Film className="size-8" />
+                                    )}
+                                    <div>
+                                        <p>WebM Video</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Export animation as video
+                                        </p>
+                                    </div>
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <UserButton />

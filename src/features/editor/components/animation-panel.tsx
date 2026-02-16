@@ -7,7 +7,6 @@ import {
     Square as StopIcon,
     Plus,
     Trash2,
-    Download,
     ChevronUp,
     ChevronDown,
     Clock,
@@ -86,7 +85,6 @@ export const AnimationPanel = ({
     onExportVideo
 }: AnimationPanelProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
     const [selectedEasing, setSelectedEasing] = useState<EasingType>('Linear');
     const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -147,23 +145,6 @@ export const AnimationPanel = ({
 
         onAddKeyframe(selectedObject.id, keyframe);
     }, [selectedObject, currentTime, onAddKeyframe, selectedEasing]);
-
-    const handleExport = useCallback(async () => {
-        setIsExporting(true);
-        try {
-            const blob = await onExportVideo();
-            if (blob) {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'animation.webm';
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-        } finally {
-            setIsExporting(false);
-        }
-    }, [onExportVideo]);
 
     return (
         <div className="relative z-[48] shrink-0">
@@ -340,22 +321,6 @@ export const AnimationPanel = ({
                                     >
                                         <Diamond className="size-3" />
                                         Add Keyframe
-                                    </Button>
-                                </Hint>
-
-                                {/* Export */}
-                                <Hint label="Export as WebM video" side="top">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-7 gap-1 text-xs"
-                                        onClick={handleExport}
-                                        disabled={!hasAnimations || isExporting}
-                                    >
-                                        <Download className="size-3" />
-                                        {isExporting
-                                            ? 'Exporting...'
-                                            : 'Export'}
                                     </Button>
                                 </Hint>
                             </div>

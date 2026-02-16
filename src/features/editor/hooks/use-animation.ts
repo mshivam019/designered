@@ -395,7 +395,7 @@ export const useAnimation = ({ stageRef }: UseAnimationProps) => {
             const canvas = stage.toCanvas({});
             const stream = canvas.captureStream(30);
             const recorder = new MediaRecorder(stream, {
-                mimeType: 'video/webm;codecs=vp9'
+                mimeType: 'video/webm;codecs=vp8'
             });
 
             const chunks: Blob[] = [];
